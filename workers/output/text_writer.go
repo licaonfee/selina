@@ -3,8 +3,8 @@ package output
 import (
 	"bufio"
 	"context"
+	"errors"
 	"io"
-	"os"
 
 	"github.com/licaonfee/selina"
 )
@@ -12,31 +12,42 @@ import (
 var _ selina.Worker = (*TextWriter)(nil)
 
 type TextWriterOptions struct {
-	Filename string
+	Writer    io.Writer
+	AutoClose bool
 }
 
 type TextWriter struct {
 	opts TextWriterOptions
 }
 
-func (t *TextWriter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
-	defer close(out)
-	var f io.WriteCloser
-	f, err = os.Create(t.opts.Filename)
-	if err != nil {
-		return err
+func (t *TextWriter) cleanup() error {
+	if t.opts.Writer == nil {
+		return nil
 	}
+	if c, ok := t.opts.Writer.(io.Closer); t.opts.AutoClose && ok {
+		return c.Close()
+	}
+	return nil
+}
 
-	w := bufio.NewWriter(f)
+var ErrNilWriter = errors.New("nil io.Writer provided to TextWriter")
+
+func (t *TextWriter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
+	defer func() {
+		close(out)
+		cerr := t.cleanup()
+		if err == nil { //if an error occurred not override it
+			err = cerr
+		}
+	}()
+	if t.opts.Writer == nil {
+		return ErrNilWriter
+	}
+	w := bufio.NewWriter(t.opts.Writer)
 	defer func() {
 		if errFlush := w.Flush(); errFlush != nil {
 			err = errFlush
-			return
 		}
-		if errClose := f.Close(); errClose != nil {
-			err = errClose
-		}
-
 	}()
 	newLine := []byte("\n")
 	for {
@@ -58,7 +69,6 @@ func (t *TextWriter) Process(ctx context.Context, in <-chan []byte, out chan<- [
 			return ctx.Err()
 		}
 	}
-
 }
 
 func NewTextWriter(opts TextWriterOptions) *TextWriter {

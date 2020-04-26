@@ -61,11 +61,14 @@ func (r *Receiver) initChan() {
 
 //Receive listen to all channels configured with Watch
 // when all channels are closed, output chanel is closed too
+// if there is no channels in watch list , this method returns
+// a nil channel
 func (r *Receiver) Receive() <-chan []byte {
-	r.initChan()
 	go func() {
-		r.wg.Wait()
-		close(r.out)
+		if r.out != nil {
+			r.wg.Wait()
+			close(r.out)
+		}
 	}()
 	return r.out
 }

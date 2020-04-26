@@ -3,8 +3,8 @@ package input
 import (
 	"bufio"
 	"context"
+	"errors"
 	"io"
-	"os"
 
 	"github.com/licaonfee/selina"
 )
@@ -12,26 +12,38 @@ import (
 var _ selina.Worker = (*TextReader)(nil)
 
 type TextReaderOptions struct {
-	Filename string
+	Reader    io.Reader
+	AutoClose bool
 }
 
 type TextReader struct {
 	opts TextReaderOptions
 }
 
-func (t *TextReader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
-	var f io.ReadCloser
-	defer close(out)
-	f, err = os.Open(t.opts.Filename)
-	if err != nil {
-		return err
+func (t *TextReader) cleanup() error {
+	if t.opts.Reader == nil {
+		return nil
 	}
+	if c, ok := t.opts.Reader.(io.Closer); t.opts.AutoClose && ok {
+		return c.Close()
+	}
+	return nil
+}
+
+var ErrNilReader = errors.New("nil io.Reader provided to TextReader")
+
+func (t *TextReader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
 	defer func() {
-		if errClose := f.Close(); errClose != nil {
-			err = errClose
+		close(out)
+		cerr := t.cleanup()
+		if err == nil { //if an error occurred not override it
+			err = cerr
 		}
 	}()
-	sc := bufio.NewScanner(f)
+	if t.opts.Reader == nil {
+		return ErrNilReader
+	}
+	sc := bufio.NewScanner(t.opts.Reader)
 	for sc.Scan() {
 		select {
 		case _, ok := <-input:

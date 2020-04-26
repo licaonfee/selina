@@ -10,47 +10,10 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-type dummyWorker struct{}
-
-func (d *dummyWorker) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
-	for msg := range in {
-		out <- msg
-	}
-	return nil
-}
-
-type sliceReader struct {
-	values []string
-}
-
-func (r *sliceReader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
-	rd := selina.SliceAsChannel(r.values, true)
-	for msg := range rd {
-		out <- msg
-	}
-	return nil
-}
-
-type sliceWriter struct {
-	values []string
-}
-
-func (w *sliceWriter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
-	for msg := range in {
-		w.values = append(w.values, string(msg))
-	}
-
-	return nil
-}
-
-func (w *sliceWriter) Finish() error {
-	return nil
-}
-
 func startNode(wg *sync.WaitGroup, n *selina.Node) {
 	wg.Add(1)
 	go func() {
-		_ = n.Start()
+		_ = n.Start(context.Background())
 		wg.Done()
 	}()
 }
@@ -77,25 +40,19 @@ func TestNode_Chain(t *testing.T) {
 	}
 }
 
-type lazyWorker struct{}
-
-func (l *lazyWorker) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(time.Hour):
-		return nil
-	}
-}
-
 func TestNode_Stop(t *testing.T) {
 	n1 := selina.NewNode("A", &lazyWorker{})
 	stoped := make(chan error, 1)
 	go func() {
-		err := n1.Start()
+		err := n1.Start(context.Background())
 		stoped <- err
 	}()
-	_ = n1.Stop()
+	for !n1.Running() {
+
+	}
+	if err := n1.Stop(); err != nil {
+		t.Fatalf("Stop() err = %v", err)
+	}
 	select {
 	case err := <-stoped:
 		if err != context.Canceled {
@@ -108,28 +65,6 @@ func TestNode_Stop(t *testing.T) {
 
 }
 
-type produceN struct {
-	count   int
-	message []byte
-}
-
-func (p *produceN) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	for i := 0; i < p.count; i++ {
-		output <- p.message
-	}
-	close(output)
-	return nil
-}
-
-type sink struct{}
-
-func (s *sink) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	for range input {
-	}
-	close(output)
-	return nil
-}
-
 func Benchmark_Node(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
@@ -138,8 +73,8 @@ func Benchmark_Node(b *testing.B) {
 		start.Chain(end)
 		b.StartTimer()
 		go func() {
-			_ = start.Start()
+			_ = start.Start(context.Background())
 		}()
-		_ = end.Start()
+		_ = end.Start(context.Background())
 	}
 }
