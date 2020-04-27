@@ -27,7 +27,7 @@ func SliceAsChannelRaw(data [][]byte, autoClose bool) chan []byte {
 }
 
 func ChannelAsSlice(in <-chan []byte) []string {
-	var ret []string
+	ret := []string{}
 	for value := range in {
 		ret = append(ret, string(value))
 	}

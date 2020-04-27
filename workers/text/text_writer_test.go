@@ -1,4 +1,4 @@
-package output_test
+package text_test
 
 import (
 	"bufio"
@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/licaonfee/selina/workers"
+	"github.com/licaonfee/selina/workers/text"
 
 	"github.com/licaonfee/selina"
-	"github.com/licaonfee/selina/workers/output"
 )
 
 func TestTextWriter_Process(t *testing.T) {
@@ -20,7 +20,7 @@ func TestTextWriter_Process(t *testing.T) {
 		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 	}
 	w := &bytes.Buffer{}
-	tw := output.NewTextWriter(output.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
 	in := selina.SliceAsChannel(fileContents, true)
 	out := make(chan []byte)
 
@@ -38,29 +38,29 @@ func TestTextWriter_Process(t *testing.T) {
 }
 
 func Test_TextWriter_Process_NilWriter(t *testing.T) {
-	opts := output.TextWriterOptions{Writer: nil}
-	tr := output.NewTextWriter(opts)
+	opts := text.TextWriterOptions{Writer: nil}
+	tr := text.NewTextWriter(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever
 	err := tr.Process(context.Background(), in, out)
-	if err != output.ErrNilWriter {
+	if err != text.ErrNilWriter {
 		t.Fatalf("Process() err = %T(%v)", err, err)
 	}
 }
 
 func TestTextWriter_Process_close_input(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := output.NewTextWriter(output.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
 	workers.ATProcessCloseInput(tw, t)
 }
 
 func TestTextWriter_Process_close_output(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := output.NewTextWriter(output.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
 	workers.ATProcessCloseOutput(tw, t)
 }
 func TestTextWriter_Process_cancel(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := output.NewTextWriter(output.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
 	workers.ATProcessCancel(tw, t)
 }

@@ -1,21 +1,20 @@
-package process_test
+package regex_test
 
 import (
 	"context"
 	"reflect"
 
 	"github.com/licaonfee/selina/workers"
+	"github.com/licaonfee/selina/workers/regex"
 
 	"github.com/licaonfee/selina"
-
-	"github.com/licaonfee/selina/workers/process"
 
 	"testing"
 )
 
 func TestRegexFilter_Process(t *testing.T) {
 	type args struct {
-		opts process.RegexFilterOptions
+		opts regex.RegexFilterOptions
 		in   []string
 		want []string
 	}
@@ -27,7 +26,7 @@ func TestRegexFilter_Process(t *testing.T) {
 		{
 			name: "Simple FIlter",
 			args: args{
-				opts: process.RegexFilterOptions{Pattern: "^ba.+"},
+				opts: regex.RegexFilterOptions{Pattern: "^ba.+"},
 				in:   []string{"foo", "bar", "baz"},
 				want: []string{"bar", "baz"},
 			},
@@ -36,7 +35,7 @@ func TestRegexFilter_Process(t *testing.T) {
 		{
 			name: "Invalid Filter",
 			args: args{
-				opts: process.RegexFilterOptions{Pattern: "[----"},
+				opts: regex.RegexFilterOptions{Pattern: "[----"},
 				in:   []string{"you", "shall", "not", "pass"},
 				want: []string{},
 			},
@@ -45,7 +44,7 @@ func TestRegexFilter_Process(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := process.NewRegexpFilter(tt.args.opts)
+			r := regex.NewRegexpFilter(tt.args.opts)
 			input := selina.SliceAsChannel(tt.args.in, true)
 			output := make(chan []byte)
 			got := []string{}
@@ -70,15 +69,15 @@ func TestRegexFilter_Process(t *testing.T) {
 }
 
 func TestRegexFilter_Process_cancelation(t *testing.T) {
-	r := process.NewRegexpFilter(process.RegexFilterOptions{Pattern: ".*"})
+	r := regex.NewRegexpFilter(regex.RegexFilterOptions{Pattern: ".*"})
 	workers.ATProcessCancel(r, t)
 }
 
 func TestRegexFilter_Process_close_input(t *testing.T) {
-	r := process.NewRegexpFilter(process.RegexFilterOptions{Pattern: ".*"})
+	r := regex.NewRegexpFilter(regex.RegexFilterOptions{Pattern: ".*"})
 	workers.ATProcessCloseInput(r, t)
 }
 func TestRegexFilter_Process_close_output(t *testing.T) {
-	r := process.NewRegexpFilter(process.RegexFilterOptions{Pattern: ".*"})
+	r := regex.NewRegexpFilter(regex.RegexFilterOptions{Pattern: ".*"})
 	workers.ATProcessCloseOutput(r, t)
 }

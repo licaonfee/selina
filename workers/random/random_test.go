@@ -1,4 +1,4 @@
-package input_test
+package random_test
 
 import (
 	"context"
@@ -6,22 +6,22 @@ import (
 
 	"github.com/licaonfee/selina/workers"
 
-	"github.com/licaonfee/selina/workers/input"
+	"github.com/licaonfee/selina/workers/random"
 )
 
 func TestRandom_Process_len(t *testing.T) {
 	tests := []struct {
 		name string
-		opts input.RandomOptions
+		opts random.RandomOptions
 	}{
 		{
 			name: "Short slice",
-			opts: input.RandomOptions{Len: 32},
+			opts: random.RandomOptions{Len: 32},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := input.NewRandom(tt.opts)
+			r := random.NewRandom(tt.opts)
 			input := make(chan []byte)
 			output := make(chan []byte)
 			var msg []byte
@@ -43,16 +43,16 @@ func TestRandom_Process_len(t *testing.T) {
 }
 
 func TestRandom_Process_cancel(t *testing.T) {
-	p := input.NewRandom(input.RandomOptions{Len: 8})
+	p := random.NewRandom(random.RandomOptions{Len: 8})
 	workers.ATProcessCancel(p, t)
 }
 
 func TestRandom_Process_close_input(t *testing.T) {
-	p := input.NewRandom(input.RandomOptions{Len: 8})
+	p := random.NewRandom(random.RandomOptions{Len: 8})
 	workers.ATProcessCloseInput(p, t)
 }
 
 func TestRandom_Process_close_output(t *testing.T) {
-	p := input.NewRandom(input.RandomOptions{Len: 8})
+	p := random.NewRandom(random.RandomOptions{Len: 8})
 	workers.ATProcessCloseOutput(p, t)
 }

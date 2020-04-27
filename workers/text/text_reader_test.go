@@ -1,4 +1,4 @@
-package input_test
+package text_test
 
 import (
 	"context"
@@ -7,8 +7,7 @@ import (
 	"testing"
 
 	"github.com/licaonfee/selina/workers"
-
-	"github.com/licaonfee/selina/workers/input"
+	"github.com/licaonfee/selina/workers/text"
 )
 
 func Test_TextReader_Process(t *testing.T) {
@@ -18,8 +17,8 @@ func Test_TextReader_Process(t *testing.T) {
 		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 	}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	opts := input.TextReaderOptions{Reader: rd}
-	tr := input.NewTextReader(opts)
+	opts := text.TextReaderOptions{Reader: rd}
+	tr := text.NewTextReader(opts)
 	input := make(chan []byte)
 	output := make(chan []byte, len(fileContents))
 	if err := tr.Process(context.Background(), input, output); err != nil {
@@ -40,31 +39,31 @@ func Test_TextReader_Process(t *testing.T) {
 func Test_TextReader_Process_cancel(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := input.NewTextReader(input.TextReaderOptions{Reader: rd})
+	tr := text.NewTextReader(text.TextReaderOptions{Reader: rd})
 	workers.ATProcessCancel(tr, t)
 }
 
 func Test_TextReader_Process_close_input(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := input.NewTextReader(input.TextReaderOptions{Reader: rd})
+	tr := text.NewTextReader(text.TextReaderOptions{Reader: rd})
 	workers.ATProcessCloseInput(tr, t)
 }
 
 func Test_TextReader_Process_close_output(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := input.NewTextReader(input.TextReaderOptions{Reader: rd})
+	tr := text.NewTextReader(text.TextReaderOptions{Reader: rd})
 	workers.ATProcessCloseOutput(tr, t)
 }
 
 func Test_TextReader_Process_NilReader(t *testing.T) {
-	opts := input.TextReaderOptions{Reader: nil}
-	tr := input.NewTextReader(opts)
+	opts := text.TextReaderOptions{Reader: nil}
+	tr := text.NewTextReader(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever
 	err := tr.Process(context.Background(), in, out)
-	if err != input.ErrNilReader {
+	if err != text.ErrNilReader {
 		t.Fatalf("Process() err = %T(%v)", err, err)
 	}
 }

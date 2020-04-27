@@ -36,6 +36,11 @@ func ATProcessCloseInput(w selina.Worker, t *testing.T) {
 	go func() {
 		resp <- w.Process(context.Background(), input, output)
 	}()
+	go func() {
+		for range output {
+			//Consume output to avoid Process lock
+		}
+	}()
 	time.Sleep(waitProcessSleepDuration)
 	close(input)
 	select {
@@ -56,6 +61,10 @@ func ATProcessCloseOutput(w selina.Worker, t *testing.T) {
 	if err := w.Process(context.Background(), input, output); err != nil {
 		t.Fatalf("Process() err = %v", err)
 	}
+	go func() {
+		for range output {
+		}
+	}()
 	errC := make(chan error)
 	go func() {
 		defer func() {
