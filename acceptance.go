@@ -1,16 +1,14 @@
-package selina_test
+package selina
 
 import (
 	"context"
 	"testing"
 	"time"
-
-	"github.com/licaonfee/selina"
 )
 
 const stopPipelineTime = time.Millisecond * 20
 
-func ATPipeline_Start_All(p selina.Pipeliner, t *testing.T) {
+func ATPipeline_Start_All(p Pipeliner, t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	wait := make(chan struct{})
 	go func() {
@@ -30,14 +28,14 @@ func ATPipeline_Start_All(p selina.Pipeliner, t *testing.T) {
 	}
 }
 
-func ATPipeline_Context_cancel(p selina.Pipeliner, t *testing.T) {
+func ATPipeline_Context_cancel(p Pipeliner, t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		time.Sleep(stopPipelineTime)
 		cancel()
 	}()
 	err := p.Run(ctx)
-	if m, ok := err.(*selina.MultiError); ok {
+	if m, ok := err.(*MultiError); ok {
 		for n, e := range m.InnerErrors {
 			if e != context.Canceled {
 				t.Fatalf("Run() node=%s, err= %v", n, err)
