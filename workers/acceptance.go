@@ -9,7 +9,7 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-const waitProcessSleepDuration = time.Millisecond * 20
+const waitProcessSleepDuration = time.Millisecond * 50
 const closeInputTimeout = time.Millisecond * 50
 
 //ATPProcessCancel a worker must terminate and return context.Canceled

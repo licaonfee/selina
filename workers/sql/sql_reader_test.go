@@ -104,7 +104,7 @@ func TestSQLReader_Process(t *testing.T) {
 	}
 }
 func TestSQLReader_Process_close_input(t *testing.T) {
-	const dbname = "close_input"
+	const dbname = "reader_close_input"
 	setupDB(dbname)
 	s := sql.NewSQLReader(sql.SQLReaderOptions{
 		Driver:  ramsqlDriver,
@@ -115,7 +115,7 @@ func TestSQLReader_Process_close_input(t *testing.T) {
 }
 
 func TestSQLReader_Process_close_output(t *testing.T) {
-	const dbname = "close_output"
+	const dbname = "reader_close_output"
 	setupDB(dbname)
 	s := sql.NewSQLReader(sql.SQLReaderOptions{
 		Driver:  ramsqlDriver,
@@ -126,7 +126,7 @@ func TestSQLReader_Process_close_output(t *testing.T) {
 }
 
 func TestSQLReader_Process_cancel(t *testing.T) {
-	const dbname = "cancel"
+	const dbname = "reader_cancel"
 	setupDB(dbname)
 	s := sql.NewSQLReader(sql.SQLReaderOptions{
 		Driver:  ramsqlDriver,
