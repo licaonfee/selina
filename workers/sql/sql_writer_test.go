@@ -13,11 +13,11 @@ import (
 	"github.com/licaonfee/selina/workers/sql"
 )
 
-func TestSQLWriter_Process(t *testing.T) {
+func TestWriterProcess(t *testing.T) {
 	//All tests uses DefaultQueryBuilder
 	tests := []struct {
 		name        string
-		opts        sql.SQLWriterOptions
+		opts        sql.WriterOptions
 		in          []string
 		expectCount int
 		countQuery  string
@@ -25,7 +25,7 @@ func TestSQLWriter_Process(t *testing.T) {
 	}{
 		{
 			name:        "Success one column",
-			opts:        sql.SQLWriterOptions{Driver: ramsqlDriver, ConnStr: "w_success_one_column", Table: "members"},
+			opts:        sql.WriterOptions{Driver: ramsqlDriver, ConnStr: "w_success_one_column", Table: "members"},
 			in:          []string{`{"name":"Nina"}`, `{"name":"Arani"}`},
 			countQuery:  "SELECT COUNT(*) FROM members where name='Nina' or name='Arani';",
 			expectCount: 2,
@@ -33,7 +33,7 @@ func TestSQLWriter_Process(t *testing.T) {
 		},
 		{
 			name:        "Success three columns",
-			opts:        sql.SQLWriterOptions{Driver: ramsqlDriver, ConnStr: "w_success_three_columns", Table: "members"},
+			opts:        sql.WriterOptions{Driver: ramsqlDriver, ConnStr: "w_success_three_columns", Table: "members"},
 			in:          []string{`{"id":10,"name":"Alice", "mood":"sad"}`, `{"id":11,"name":"Sarah","mood":"happy"}`},
 			countQuery:  "SELECT COUNT(*) FROM members where id=10 or id='11';",
 			expectCount: 2,
@@ -41,7 +41,7 @@ func TestSQLWriter_Process(t *testing.T) {
 		},
 		{
 			name:        "Success variant columns",
-			opts:        sql.SQLWriterOptions{Driver: ramsqlDriver, ConnStr: "w_success_variant_columns", Table: "members"},
+			opts:        sql.WriterOptions{Driver: ramsqlDriver, ConnStr: "w_success_variant_columns", Table: "members"},
 			in:          []string{`{"id":15,"name":"Jess"}`, `{"name":"Alex","mood":"happy"}`},
 			countQuery:  "SELECT COUNT(*) FROM members where name='Jess' or name='Alex';",
 			expectCount: 2,
@@ -49,13 +49,13 @@ func TestSQLWriter_Process(t *testing.T) {
 		},
 		{
 			name:    "Invalid connection",
-			opts:    sql.SQLWriterOptions{Driver: "", ConnStr: "w_invalid_connection", Table: "members"},
+			opts:    sql.WriterOptions{Driver: "", ConnStr: "w_invalid_connection", Table: "members"},
 			in:      []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Empty table",
-			opts:    sql.SQLWriterOptions{Driver: ramsqlDriver, ConnStr: "w_empty_table", Table: ""},
+			opts:    sql.WriterOptions{Driver: ramsqlDriver, ConnStr: "w_empty_table", Table: ""},
 			in:      []string{`{"name":"Valery"}`},
 			wantErr: true,
 		},
@@ -64,7 +64,7 @@ func TestSQLWriter_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setupDB(tt.opts.ConnStr)
-			s := sql.NewSQLWriter(tt.opts)
+			s := sql.NewWriter(tt.opts)
 			input := selina.SliceAsChannel(tt.in, true)
 			output := make(chan []byte)
 			if err := s.Process(context.Background(), input, output); (err != nil) != tt.wantErr {
@@ -93,10 +93,10 @@ func TestSQLWriter_Process(t *testing.T) {
 	}
 }
 
-func TestSQLWriter_Process_close_input(t *testing.T) {
+func TestWriterProcessCloseInput(t *testing.T) {
 	const dbname = "writer_close_input"
 	setupDB(dbname)
-	s := sql.NewSQLWriter(sql.SQLWriterOptions{
+	s := sql.NewWriter(sql.WriterOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Table:   "members",
@@ -104,10 +104,10 @@ func TestSQLWriter_Process_close_input(t *testing.T) {
 	workers.ATProcessCloseInput(s, t)
 }
 
-func TestSQLWriter_Process_close_output(t *testing.T) {
+func TestWriterProcessCloseOutput(t *testing.T) {
 	const dbname = "writer_close_output"
 	setupDB(dbname)
-	s := sql.NewSQLWriter(sql.SQLWriterOptions{
+	s := sql.NewWriter(sql.WriterOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Table:   "members",
@@ -115,10 +115,10 @@ func TestSQLWriter_Process_close_output(t *testing.T) {
 	workers.ATProcessCloseOutput(s, t)
 }
 
-func TestSQLWriter_Process_cancel(t *testing.T) {
+func TestWriterProcessCancel(t *testing.T) {
 	const dbname = "writer_cancel"
 	setupDB(dbname)
-	s := sql.NewSQLWriter(sql.SQLWriterOptions{
+	s := sql.NewWriter(sql.WriterOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Table:   "members",

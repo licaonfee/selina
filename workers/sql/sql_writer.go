@@ -9,19 +9,28 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*SQLWriter)(nil)
+var _ selina.Worker = (*Writer)(nil)
 
-type SQLWriterOptions struct {
-	Driver  string
+//WriterOptions provide parameters to create a Writer
+type WriterOptions struct {
+	//Driver which driver should be used
+	//this require that users import required driver
+	Driver string
+	//ConnStr connection string relative to Driver
 	ConnStr string
-	Table   string
+	//Table in which table data will be inserted
+	Table string
+	//Builder (optional) customize SQL generation
 	Builder QueryBuilder
 }
-type SQLWriter struct {
-	opts SQLWriterOptions
+
+//Writer a Worker that insert data into database
+type Writer struct {
+	opts WriterOptions
 }
 
-func (s *SQLWriter) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
+//Process implements Worker interface
+func (s *Writer) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
 	defer close(output)
 	conn, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
@@ -55,8 +64,9 @@ func (s *SQLWriter) Process(ctx context.Context, input <-chan []byte, output cha
 	}
 }
 
-func NewSQLWriter(opts SQLWriterOptions) *SQLWriter {
-	return &SQLWriter{opts: opts}
+//NewWriter create a new Writer with given options
+func NewWriter(opts WriterOptions) *Writer {
+	return &Writer{opts: opts}
 }
 
 func deserialize(data []byte) (cols []string, values []interface{}, err error) {

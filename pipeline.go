@@ -6,22 +6,27 @@ import (
 	"sync"
 )
 
-type Stats struct {
-}
-
+//Pipeliner all implementations must meet the following conditions
+// Run must call Node.Start of all Nodes
+// Context passed in Run must be propagated to all Node.Start methods
+// Nodes() return an slice with all instances of *Node
 type Pipeliner interface {
 	Run(context.Context) error
 	Stats() map[string]string
 	Nodes() []*Node
 }
+
+//MultiError and error that contains all pipeline's Node.Start error
 type MultiError struct {
 	InnerErrors map[string]error
 }
 
+//Error to implement "error" interface
 func (e *MultiError) Error() string {
 	return fmt.Sprintf("%v", e.InnerErrors)
 }
 
+//SimplePipeline default value is unusable, you must create it with NewSimplePipeline
 type SimplePipeline struct {
 	nodes  []*Node
 	wg     sync.WaitGroup
@@ -36,6 +41,7 @@ func (p *SimplePipeline) startNode(ctx context.Context, n *Node) {
 	p.wg.Done()
 }
 
+//Run init pipeline proccesing, return an error!= nil if any Node fail
 func (p *SimplePipeline) Run(ctx context.Context) error {
 	p.wg.Add(len(p.nodes)) //1-Somethimes call Add from a goroutine is a panic
 	for _, n := range p.nodes {
@@ -48,10 +54,12 @@ func (p *SimplePipeline) Run(ctx context.Context) error {
 	return nil
 }
 
+//Stats TODO: implement
 func (p *SimplePipeline) Stats() map[string]string {
 	return nil
 }
 
+//Nodes return all instances of *Node
 func (p *SimplePipeline) Nodes() []*Node {
 	return p.nodes
 }
@@ -61,7 +69,7 @@ func (p *SimplePipeline) notify(name string, err error) {
 	p.mtx.Unlock()
 }
 
-//Create a linear pipeline
+//NewSimplePipeline create a linear pipeline
 func NewSimplePipeline(n ...*Node) Pipeliner {
 	p := &SimplePipeline{}
 	for i := 1; i < len(n); i++ {

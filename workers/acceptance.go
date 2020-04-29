@@ -12,7 +12,7 @@ import (
 const waitProcessSleepDuration = time.Millisecond * 50
 const closeInputTimeout = time.Millisecond * 50
 
-//ATPProcessCancel a worker must terminate and return context.Canceled
+//ATProcessCancel a worker must terminate and return context.Canceled
 // when context is canceled
 func ATProcessCancel(w selina.Worker, t *testing.T) {
 	input := make(chan []byte)
@@ -27,7 +27,7 @@ func ATProcessCancel(w selina.Worker, t *testing.T) {
 	}
 }
 
-//ATPProcessCloseInput a worker must terminate and return nil
+//ATProcessCloseInput a worker must finish its job and return nil
 // when input chanel (<-chan []byte )is closed
 func ATProcessCloseInput(w selina.Worker, t *testing.T) {
 	input := make(chan []byte)
@@ -53,7 +53,7 @@ func ATProcessCloseInput(w selina.Worker, t *testing.T) {
 	}
 }
 
-//ATPProcessCloseOutput a worker must close its output channel on exit
+//ATProcessCloseOutput a worker must close its output channel on exit
 func ATProcessCloseOutput(w selina.Worker, t *testing.T) {
 	input := make(chan []byte)
 	output := make(chan []byte)

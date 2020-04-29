@@ -9,18 +9,23 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*TextReader)(nil)
+var _ selina.Worker = (*Reader)(nil)
 
-type TextReaderOptions struct {
-	Reader    io.Reader
+//ReaderOptions customize Reader
+type ReaderOptions struct {
+	//Reader from which data is readed
+	Reader io.Reader
+	//AutoClose if its true and Reader implements io.Closer
+	//io.Reader.Close() method is called on Process finish
 	AutoClose bool
 }
 
-type TextReader struct {
-	opts TextReaderOptions
+//Reader a worker that read data from an io.Reader
+type Reader struct {
+	opts ReaderOptions
 }
 
-func (t *TextReader) cleanup() error {
+func (t *Reader) cleanup() error {
 	if t.opts.Reader == nil {
 		return nil
 	}
@@ -30,9 +35,11 @@ func (t *TextReader) cleanup() error {
 	return nil
 }
 
+//ErrNilReader is returned when a nil io.Reader interface is provided
 var ErrNilReader = errors.New("nil io.Reader provided to TextReader")
 
-func (t *TextReader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
+//Process implements Worker interface
+func (t *Reader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
 	defer func() {
 		close(out)
 		cerr := t.cleanup()
@@ -58,7 +65,8 @@ func (t *TextReader) Process(ctx context.Context, input <-chan []byte, out chan<
 	return nil
 }
 
-func NewTextReader(opts TextReaderOptions) *TextReader {
-	t := TextReader{opts: opts}
+//NewReader create a new Reader with given options
+func NewReader(opts ReaderOptions) *Reader {
+	t := Reader{opts: opts}
 	return &t
 }

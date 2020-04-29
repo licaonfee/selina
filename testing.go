@@ -1,5 +1,7 @@
 package selina
 
+//SliceAsChannel return a channel that read from an slice
+// if autoClose is true , then channel is closed after last message is consummed
 func SliceAsChannel(data []string, autoClose bool) chan []byte {
 	retc := make(chan []byte, len(data))
 	go func() {
@@ -13,6 +15,7 @@ func SliceAsChannel(data []string, autoClose bool) chan []byte {
 	return retc
 }
 
+//SliceAsChannelRaw same as SliceAsChannel
 func SliceAsChannelRaw(data [][]byte, autoClose bool) chan []byte {
 	retc := make(chan []byte, len(data))
 	go func() {
@@ -26,6 +29,8 @@ func SliceAsChannelRaw(data [][]byte, autoClose bool) chan []byte {
 	return retc
 }
 
+//ChannelAsSlice read from in channel until is closed
+// return an slice with all messages received
 func ChannelAsSlice(in <-chan []byte) []string {
 	ret := []string{}
 	for value := range in {

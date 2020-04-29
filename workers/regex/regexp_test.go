@@ -12,9 +12,9 @@ import (
 	"testing"
 )
 
-func TestRegexFilter_Process(t *testing.T) {
+func TestFilter_Process(t *testing.T) {
 	type args struct {
-		opts regex.RegexFilterOptions
+		opts regex.FilterOptions
 		in   []string
 		want []string
 	}
@@ -26,7 +26,7 @@ func TestRegexFilter_Process(t *testing.T) {
 		{
 			name: "Simple FIlter",
 			args: args{
-				opts: regex.RegexFilterOptions{Pattern: "^ba.+"},
+				opts: regex.FilterOptions{Pattern: "^ba.+"},
 				in:   []string{"foo", "bar", "baz"},
 				want: []string{"bar", "baz"},
 			},
@@ -35,7 +35,7 @@ func TestRegexFilter_Process(t *testing.T) {
 		{
 			name: "Invalid Filter",
 			args: args{
-				opts: regex.RegexFilterOptions{Pattern: "[----"},
+				opts: regex.FilterOptions{Pattern: "[----"},
 				in:   []string{"you", "shall", "not", "pass"},
 				want: []string{},
 			},
@@ -44,7 +44,7 @@ func TestRegexFilter_Process(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := regex.NewRegexpFilter(tt.args.opts)
+			r := regex.NewFilter(tt.args.opts)
 			input := selina.SliceAsChannel(tt.args.in, true)
 			output := make(chan []byte)
 			got := []string{}
@@ -68,16 +68,16 @@ func TestRegexFilter_Process(t *testing.T) {
 	}
 }
 
-func TestRegexFilter_Process_cancelation(t *testing.T) {
-	r := regex.NewRegexpFilter(regex.RegexFilterOptions{Pattern: ".*"})
+func TestFilterProcessCancelation(t *testing.T) {
+	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
 	workers.ATProcessCancel(r, t)
 }
 
-func TestRegexFilter_Process_close_input(t *testing.T) {
-	r := regex.NewRegexpFilter(regex.RegexFilterOptions{Pattern: ".*"})
+func TestFilterProcessCloseInput(t *testing.T) {
+	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
 	workers.ATProcessCloseInput(r, t)
 }
-func TestRegexFilter_Process_close_output(t *testing.T) {
-	r := regex.NewRegexpFilter(regex.RegexFilterOptions{Pattern: ".*"})
+func TestRegexFilterProcessCloseOutput(t *testing.T) {
+	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
 	workers.ATProcessCloseOutput(r, t)
 }

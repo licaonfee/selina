@@ -8,19 +8,26 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*SQLReader)(nil)
+var _ selina.Worker = (*Reader)(nil)
 
-type SQLReaderOptions struct {
-	Driver  string
+//ReaderOptions provide parameters to create a Reader
+type ReaderOptions struct {
+	//Driver which driver should be used
+	//this require that users import required driver
+	Driver string
+	//ConnStr connection string relative to Driver
 	ConnStr string
-	Query   string
+	//Query which SQL select will be executed into database
+	Query string
 }
 
-type SQLReader struct {
-	opts SQLReaderOptions
+//Reader a Worker that execute a given Query and export data via output channel
+type Reader struct {
+	opts ReaderOptions
 }
 
-func (s *SQLReader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
+//Process implements Worker interface
+func (s *Reader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
 	defer close(out)
 	db, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
@@ -85,6 +92,7 @@ func sendMessage(ctx context.Context, out chan<- []byte, msg []byte) error {
 	return nil
 }
 
-func NewSQLReader(opts SQLReaderOptions) *SQLReader {
-	return &SQLReader{opts: opts}
+//NewReader create a new Reader with given options
+func NewReader(opts ReaderOptions) *Reader {
+	return &Reader{opts: opts}
 }

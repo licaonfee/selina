@@ -9,14 +9,18 @@ import (
 
 var _ selina.Worker = (*Random)(nil)
 
-type RandomOptions struct {
+//Options to customize Ramdom generator
+type Options struct {
+	//Len how many random bytes will contain []byte
 	Len int
 }
 
+//Random generate random []byte slices
 type Random struct {
-	opts RandomOptions
+	opts Options
 }
 
+//Process implements Worker interface
 func (r *Random) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
 	defer close(output)
 	for {
@@ -36,6 +40,7 @@ func (r *Random) Process(ctx context.Context, input <-chan []byte, output chan<-
 	}
 }
 
-func NewRandom(opts RandomOptions) *Random {
+//NewRandom create a new Random worker that generate random byte slices
+func NewRandom(opts Options) *Random {
 	return &Random{opts: opts}
 }

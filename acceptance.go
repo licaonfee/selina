@@ -8,7 +8,8 @@ import (
 
 const stopPipelineTime = time.Millisecond * 20
 
-func ATPipeline_Start_All(p Pipeliner, t *testing.T) {
+//ATPipelineStartAll all Nodes in a pipeline mus be started when pipeline.Start is called
+func ATPipelineStartAll(p Pipeliner, t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	wait := make(chan struct{})
 	go func() {
@@ -28,7 +29,8 @@ func ATPipeline_Start_All(p Pipeliner, t *testing.T) {
 	}
 }
 
-func ATPipeline_Context_cancel(p Pipeliner, t *testing.T) {
+//ATPipelineContextCancel context must be propagated to all Nodes
+func ATPipelineContextCancel(p Pipeliner, t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		time.Sleep(stopPipelineTime)
