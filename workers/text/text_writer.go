@@ -9,18 +9,18 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*TextWriter)(nil)
+var _ selina.Worker = (*Writer)(nil)
 
-type TextWriterOptions struct {
+type WriterOptions struct {
 	Writer    io.Writer
 	AutoClose bool
 }
 
-type TextWriter struct {
-	opts TextWriterOptions
+type Writer struct {
+	opts WriterOptions
 }
 
-func (t *TextWriter) cleanup() error {
+func (t *Writer) cleanup() error {
 	if t.opts.Writer == nil {
 		return nil
 	}
@@ -32,7 +32,7 @@ func (t *TextWriter) cleanup() error {
 
 var ErrNilWriter = errors.New("nil io.Writer provided to TextWriter")
 
-func (t *TextWriter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
+func (t *Writer) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
 	defer func() {
 		close(out)
 		cerr := t.cleanup()
@@ -71,7 +71,7 @@ func (t *TextWriter) Process(ctx context.Context, in <-chan []byte, out chan<- [
 	}
 }
 
-func NewTextWriter(opts TextWriterOptions) *TextWriter {
-	w := &TextWriter{opts: opts}
+func NewTextWriter(opts WriterOptions) *Writer {
+	w := &Writer{opts: opts}
 	return w
 }

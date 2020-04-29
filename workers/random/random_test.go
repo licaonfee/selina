@@ -9,14 +9,14 @@ import (
 	"github.com/licaonfee/selina/workers/random"
 )
 
-func TestRandom_Process_len(t *testing.T) {
+func TestRandomProcesslen(t *testing.T) {
 	tests := []struct {
 		name string
-		opts random.RandomOptions
+		opts random.Options
 	}{
 		{
 			name: "Short slice",
-			opts: random.RandomOptions{Len: 32},
+			opts: random.Options{Len: 32},
 		},
 	}
 	for _, tt := range tests {
@@ -42,17 +42,17 @@ func TestRandom_Process_len(t *testing.T) {
 	}
 }
 
-func TestRandom_Process_cancel(t *testing.T) {
-	p := random.NewRandom(random.RandomOptions{Len: 8})
+func TestRandomProcessCancel(t *testing.T) {
+	p := random.NewRandom(random.Options{Len: 8})
 	workers.ATProcessCancel(p, t)
 }
 
-func TestRandom_Process_close_input(t *testing.T) {
-	p := random.NewRandom(random.RandomOptions{Len: 8})
+func TestRandomProcessCloseInput(t *testing.T) {
+	p := random.NewRandom(random.Options{Len: 8})
 	workers.ATProcessCloseInput(p, t)
 }
 
-func TestRandom_Process_close_output(t *testing.T) {
-	p := random.NewRandom(random.RandomOptions{Len: 8})
+func TestRandomProcessCloseOutput(t *testing.T) {
+	p := random.NewRandom(random.Options{Len: 8})
 	workers.ATProcessCloseOutput(p, t)
 }

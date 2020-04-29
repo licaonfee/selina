@@ -7,17 +7,17 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*RegexFilter)(nil)
+var _ selina.Worker = (*Filter)(nil)
 
-type RegexFilterOptions struct {
+type FilterOptions struct {
 	Pattern string
 }
 
-type RegexFilter struct {
-	opts RegexFilterOptions
+type Filter struct {
+	opts FilterOptions
 }
 
-func (r *RegexFilter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
+func (r *Filter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
 	re, err := regexp.Compile(r.opts.Pattern)
 	if err != nil {
 		return err
@@ -41,6 +41,6 @@ func (r *RegexFilter) Process(ctx context.Context, in <-chan []byte, out chan<- 
 	}
 }
 
-func NewRegexpFilter(opts RegexFilterOptions) *RegexFilter {
-	return &RegexFilter{opts: opts}
+func NewRegexpFilter(opts FilterOptions) *Filter {
+	return &Filter{opts: opts}
 }

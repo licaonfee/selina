@@ -27,7 +27,7 @@ func ATProcessCancel(w selina.Worker, t *testing.T) {
 	}
 }
 
-//ATPProcessCloseInput a worker must terminate and return nil
+//ATPProcessCloseInput a worker must finish its job and return nil
 // when input chanel (<-chan []byte )is closed
 func ATProcessCloseInput(w selina.Worker, t *testing.T) {
 	input := make(chan []byte)

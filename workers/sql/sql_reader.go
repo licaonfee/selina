@@ -8,19 +8,19 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*SQLReader)(nil)
+var _ selina.Worker = (*Reader)(nil)
 
-type SQLReaderOptions struct {
+type ReaderOptions struct {
 	Driver  string
 	ConnStr string
 	Query   string
 }
 
-type SQLReader struct {
-	opts SQLReaderOptions
+type Reader struct {
+	opts ReaderOptions
 }
 
-func (s *SQLReader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
+func (s *Reader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
 	defer close(out)
 	db, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
@@ -85,6 +85,6 @@ func sendMessage(ctx context.Context, out chan<- []byte, msg []byte) error {
 	return nil
 }
 
-func NewSQLReader(opts SQLReaderOptions) *SQLReader {
-	return &SQLReader{opts: opts}
+func NewSQLReader(opts ReaderOptions) *Reader {
+	return &Reader{opts: opts}
 }

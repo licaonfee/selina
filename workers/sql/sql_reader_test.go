@@ -63,25 +63,25 @@ func decode(data []string) []string {
 func TestSQLReader_Process(t *testing.T) {
 	tests := []struct {
 		name    string
-		opts    sql.SQLReaderOptions
+		opts    sql.ReaderOptions
 		want    []string
 		wantErr bool
 	}{
 		{
 			name:    "Unregistered Driver",
-			opts:    sql.SQLReaderOptions{Driver: "unknow", ConnStr: "unknow", Query: ""},
+			opts:    sql.ReaderOptions{Driver: "unknow", ConnStr: "unknow", Query: ""},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Invalid Query",
-			opts:    sql.SQLReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;"},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;"},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Success",
-			opts:    sql.SQLReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;"},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;"},
 			want:    []string{`{"name":"selina"}`, `{"name":"lizbeth"}`},
 			wantErr: false,
 		},
@@ -106,7 +106,7 @@ func TestSQLReader_Process(t *testing.T) {
 func TestSQLReader_Process_close_input(t *testing.T) {
 	const dbname = "reader_close_input"
 	setupDB(dbname)
-	s := sql.NewSQLReader(sql.SQLReaderOptions{
+	s := sql.NewSQLReader(sql.ReaderOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
@@ -117,7 +117,7 @@ func TestSQLReader_Process_close_input(t *testing.T) {
 func TestSQLReader_Process_close_output(t *testing.T) {
 	const dbname = "reader_close_output"
 	setupDB(dbname)
-	s := sql.NewSQLReader(sql.SQLReaderOptions{
+	s := sql.NewSQLReader(sql.ReaderOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
@@ -128,7 +128,7 @@ func TestSQLReader_Process_close_output(t *testing.T) {
 func TestSQLReader_Process_cancel(t *testing.T) {
 	const dbname = "reader_cancel"
 	setupDB(dbname)
-	s := sql.NewSQLReader(sql.SQLReaderOptions{
+	s := sql.NewSQLReader(sql.ReaderOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",

@@ -9,12 +9,12 @@ import (
 
 var _ selina.Worker = (*Random)(nil)
 
-type RandomOptions struct {
+type Options struct {
 	Len int
 }
 
 type Random struct {
-	opts RandomOptions
+	opts Options
 }
 
 func (r *Random) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
@@ -36,6 +36,6 @@ func (r *Random) Process(ctx context.Context, input <-chan []byte, output chan<-
 	}
 }
 
-func NewRandom(opts RandomOptions) *Random {
+func NewRandom(opts Options) *Random {
 	return &Random{opts: opts}
 }

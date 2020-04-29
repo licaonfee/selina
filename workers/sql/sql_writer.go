@@ -9,19 +9,19 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*SQLWriter)(nil)
+var _ selina.Worker = (*Writer)(nil)
 
-type SQLWriterOptions struct {
+type WriterOptions struct {
 	Driver  string
 	ConnStr string
 	Table   string
 	Builder QueryBuilder
 }
-type SQLWriter struct {
-	opts SQLWriterOptions
+type Writer struct {
+	opts WriterOptions
 }
 
-func (s *SQLWriter) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
+func (s *Writer) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
 	defer close(output)
 	conn, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
@@ -55,8 +55,8 @@ func (s *SQLWriter) Process(ctx context.Context, input <-chan []byte, output cha
 	}
 }
 
-func NewSQLWriter(opts SQLWriterOptions) *SQLWriter {
-	return &SQLWriter{opts: opts}
+func NewSQLWriter(opts WriterOptions) *Writer {
+	return &Writer{opts: opts}
 }
 
 func deserialize(data []byte) (cols []string, values []interface{}, err error) {

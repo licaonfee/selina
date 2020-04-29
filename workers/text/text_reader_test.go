@@ -17,7 +17,7 @@ func Test_TextReader_Process(t *testing.T) {
 		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 	}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	opts := text.TextReaderOptions{Reader: rd}
+	opts := text.ReaderOptions{Reader: rd}
 	tr := text.NewTextReader(opts)
 	input := make(chan []byte)
 	output := make(chan []byte, len(fileContents))
@@ -39,26 +39,26 @@ func Test_TextReader_Process(t *testing.T) {
 func Test_TextReader_Process_cancel(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := text.NewTextReader(text.TextReaderOptions{Reader: rd})
+	tr := text.NewTextReader(text.ReaderOptions{Reader: rd})
 	workers.ATProcessCancel(tr, t)
 }
 
 func Test_TextReader_Process_close_input(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := text.NewTextReader(text.TextReaderOptions{Reader: rd})
+	tr := text.NewTextReader(text.ReaderOptions{Reader: rd})
 	workers.ATProcessCloseInput(tr, t)
 }
 
 func Test_TextReader_Process_close_output(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := text.NewTextReader(text.TextReaderOptions{Reader: rd})
+	tr := text.NewTextReader(text.ReaderOptions{Reader: rd})
 	workers.ATProcessCloseOutput(tr, t)
 }
 
 func Test_TextReader_Process_NilReader(t *testing.T) {
-	opts := text.TextReaderOptions{Reader: nil}
+	opts := text.ReaderOptions{Reader: nil}
 	tr := text.NewTextReader(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever

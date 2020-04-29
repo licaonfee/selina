@@ -9,18 +9,18 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*TextReader)(nil)
+var _ selina.Worker = (*Reader)(nil)
 
-type TextReaderOptions struct {
+type ReaderOptions struct {
 	Reader    io.Reader
 	AutoClose bool
 }
 
-type TextReader struct {
-	opts TextReaderOptions
+type Reader struct {
+	opts ReaderOptions
 }
 
-func (t *TextReader) cleanup() error {
+func (t *Reader) cleanup() error {
 	if t.opts.Reader == nil {
 		return nil
 	}
@@ -32,7 +32,7 @@ func (t *TextReader) cleanup() error {
 
 var ErrNilReader = errors.New("nil io.Reader provided to TextReader")
 
-func (t *TextReader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
+func (t *Reader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
 	defer func() {
 		close(out)
 		cerr := t.cleanup()
@@ -58,7 +58,7 @@ func (t *TextReader) Process(ctx context.Context, input <-chan []byte, out chan<
 	return nil
 }
 
-func NewTextReader(opts TextReaderOptions) *TextReader {
-	t := TextReader{opts: opts}
+func NewTextReader(opts ReaderOptions) *Reader {
+	t := Reader{opts: opts}
 	return &t
 }

@@ -20,7 +20,7 @@ func TestTextWriter_Process(t *testing.T) {
 		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 	}
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
 	in := selina.SliceAsChannel(fileContents, true)
 	out := make(chan []byte)
 
@@ -38,7 +38,7 @@ func TestTextWriter_Process(t *testing.T) {
 }
 
 func Test_TextWriter_Process_NilWriter(t *testing.T) {
-	opts := text.TextWriterOptions{Writer: nil}
+	opts := text.WriterOptions{Writer: nil}
 	tr := text.NewTextWriter(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever
@@ -50,17 +50,17 @@ func Test_TextWriter_Process_NilWriter(t *testing.T) {
 
 func TestTextWriter_Process_close_input(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
 	workers.ATProcessCloseInput(tw, t)
 }
 
 func TestTextWriter_Process_close_output(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
 	workers.ATProcessCloseOutput(tw, t)
 }
 func TestTextWriter_Process_cancel(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.TextWriterOptions{Writer: w})
+	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
 	workers.ATProcessCancel(tw, t)
 }
