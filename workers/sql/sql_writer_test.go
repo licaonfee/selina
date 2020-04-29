@@ -75,7 +75,11 @@ func TestSQLWriter_Process(t *testing.T) {
 				return
 			}
 			conn, _ := dbsql.Open(ramsqlDriver, tt.opts.ConnStr)
-			res, _ := conn.Query(tt.countQuery)
+			res, err := conn.Query(tt.countQuery)
+			if err != nil {
+				t.Fatalf("Process() err = %v", err)
+				return
+			}
 			defer res.Close()
 			if res.Next() {
 				var count int
