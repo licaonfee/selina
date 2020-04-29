@@ -11,16 +11,25 @@ import (
 
 var _ selina.Worker = (*Writer)(nil)
 
+//WriterOptions provide parameters to create a Writer
 type WriterOptions struct {
-	Driver  string
+	//Driver which driver should be used
+	//this require that users import required driver
+	Driver string
+	//ConnStr connection string relative to Driver
 	ConnStr string
-	Table   string
+	//Table in which table data will be inserted
+	Table string
+	//Builder (optional) customize SQL generation
 	Builder QueryBuilder
 }
+
+//Writer a Worker that insert data into database
 type Writer struct {
 	opts WriterOptions
 }
 
+//Process implements Worker interface
 func (s *Writer) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
 	defer close(output)
 	conn, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
@@ -55,7 +64,8 @@ func (s *Writer) Process(ctx context.Context, input <-chan []byte, output chan<-
 	}
 }
 
-func NewSQLWriter(opts WriterOptions) *Writer {
+//NewWriter create a new Writer with given options
+func NewWriter(opts WriterOptions) *Writer {
 	return &Writer{opts: opts}
 }
 

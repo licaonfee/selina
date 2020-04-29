@@ -17,6 +17,7 @@ type Node struct {
 	opMx    sync.RWMutex
 }
 
+//Running true if Start() method was called
 func (n *Node) Running() bool {
 	n.opMx.RLock()
 	defer n.opMx.RUnlock()
@@ -44,13 +45,14 @@ func newNodeContext(ctx context.Context, close <-chan struct{}) context.Context 
 	return me
 }
 
-func SafeClose(c chan<- []byte) {
+func safeClose(c chan<- []byte) {
 	defer func() {
 		_ = recover()
 	}()
 	close(c)
 }
 
+//ErrAlreadyStarted returned if Start method is called more than once
 var ErrAlreadyStarted = errors.New("node already started")
 
 func (n *Node) checkStart() error {
@@ -72,12 +74,13 @@ func (n *Node) Start(ctx context.Context) error {
 	inChan := n.input.Receive()
 	outChan := make(chan []byte)
 	go n.output.Broadcast(outChan)
-	defer SafeClose(outChan)
+	defer safeClose(outChan)
 	inCtx := newNodeContext(ctx, n.close)
 
 	return n.w.Process(inCtx, inChan, outChan)
 }
 
+//ErrStopNotStarted returned when Stop is called before Start method
 var ErrStopNotStarted = errors.New("stopping a not started worker")
 
 //Stop stop worker in node, must be called after Start

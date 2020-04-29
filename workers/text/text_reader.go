@@ -11,11 +11,16 @@ import (
 
 var _ selina.Worker = (*Reader)(nil)
 
+//ReaderOptions customize Reader
 type ReaderOptions struct {
-	Reader    io.Reader
+	//Reader from which data is readed
+	Reader io.Reader
+	//AutoClose if its true and Reader implements io.Closer
+	//io.Reader.Close() method is called on Process finish
 	AutoClose bool
 }
 
+//Reader a worker that read data from an io.Reader
 type Reader struct {
 	opts ReaderOptions
 }
@@ -30,8 +35,10 @@ func (t *Reader) cleanup() error {
 	return nil
 }
 
+//ErrNilReader is returned when a nil io.Reader interface is provided
 var ErrNilReader = errors.New("nil io.Reader provided to TextReader")
 
+//Process implements Worker interface
 func (t *Reader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
 	defer func() {
 		close(out)
@@ -58,7 +65,8 @@ func (t *Reader) Process(ctx context.Context, input <-chan []byte, out chan<- []
 	return nil
 }
 
-func NewTextReader(opts ReaderOptions) *Reader {
+//NewReader create a new Reader with given options
+func NewReader(opts ReaderOptions) *Reader {
 	t := Reader{opts: opts}
 	return &t
 }

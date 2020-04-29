@@ -13,7 +13,7 @@ import (
 	"github.com/licaonfee/selina/workers/sql"
 )
 
-func TestSQLWriter_Process(t *testing.T) {
+func TestWriterProcess(t *testing.T) {
 	//All tests uses DefaultQueryBuilder
 	tests := []struct {
 		name        string
@@ -64,7 +64,7 @@ func TestSQLWriter_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setupDB(tt.opts.ConnStr)
-			s := sql.NewSQLWriter(tt.opts)
+			s := sql.NewWriter(tt.opts)
 			input := selina.SliceAsChannel(tt.in, true)
 			output := make(chan []byte)
 			if err := s.Process(context.Background(), input, output); (err != nil) != tt.wantErr {
@@ -93,10 +93,10 @@ func TestSQLWriter_Process(t *testing.T) {
 	}
 }
 
-func TestSQLWriter_Process_close_input(t *testing.T) {
+func TestWriterProcessCloseInput(t *testing.T) {
 	const dbname = "writer_close_input"
 	setupDB(dbname)
-	s := sql.NewSQLWriter(sql.WriterOptions{
+	s := sql.NewWriter(sql.WriterOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Table:   "members",
@@ -104,10 +104,10 @@ func TestSQLWriter_Process_close_input(t *testing.T) {
 	workers.ATProcessCloseInput(s, t)
 }
 
-func TestSQLWriter_Process_close_output(t *testing.T) {
+func TestWriterProcessCloseOutput(t *testing.T) {
 	const dbname = "writer_close_output"
 	setupDB(dbname)
-	s := sql.NewSQLWriter(sql.WriterOptions{
+	s := sql.NewWriter(sql.WriterOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Table:   "members",
@@ -115,10 +115,10 @@ func TestSQLWriter_Process_close_output(t *testing.T) {
 	workers.ATProcessCloseOutput(s, t)
 }
 
-func TestSQLWriter_Process_cancel(t *testing.T) {
+func TestWriterProcessCancel(t *testing.T) {
 	const dbname = "writer_cancel"
 	setupDB(dbname)
-	s := sql.NewSQLWriter(sql.WriterOptions{
+	s := sql.NewWriter(sql.WriterOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Table:   "members",

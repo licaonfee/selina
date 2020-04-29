@@ -89,7 +89,7 @@ func TestSQLReader_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setupDB(tt.opts.ConnStr)
-			s := sql.NewSQLReader(tt.opts)
+			s := sql.NewReader(tt.opts)
 			input := make(chan []byte)
 			output := make(chan []byte, len(tt.want)+1)
 			err := s.Process(context.Background(), input, output)
@@ -106,7 +106,7 @@ func TestSQLReader_Process(t *testing.T) {
 func TestSQLReader_Process_close_input(t *testing.T) {
 	const dbname = "reader_close_input"
 	setupDB(dbname)
-	s := sql.NewSQLReader(sql.ReaderOptions{
+	s := sql.NewReader(sql.ReaderOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
@@ -117,7 +117,7 @@ func TestSQLReader_Process_close_input(t *testing.T) {
 func TestSQLReader_Process_close_output(t *testing.T) {
 	const dbname = "reader_close_output"
 	setupDB(dbname)
-	s := sql.NewSQLReader(sql.ReaderOptions{
+	s := sql.NewReader(sql.ReaderOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
@@ -128,7 +128,7 @@ func TestSQLReader_Process_close_output(t *testing.T) {
 func TestSQLReader_Process_cancel(t *testing.T) {
 	const dbname = "reader_cancel"
 	setupDB(dbname)
-	s := sql.NewSQLReader(sql.ReaderOptions{
+	s := sql.NewReader(sql.ReaderOptions{
 		Driver:  ramsqlDriver,
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",

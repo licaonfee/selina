@@ -13,14 +13,14 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-func TestTextWriter_Process(t *testing.T) {
+func TestWriterProcess(t *testing.T) {
 	fileContents := []string{
 		"Lorem ipsum dolor sit amet",
 		"consectetur adipiscing elit",
 		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 	}
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
+	tw := text.NewWriter(text.WriterOptions{Writer: w})
 	in := selina.SliceAsChannel(fileContents, true)
 	out := make(chan []byte)
 
@@ -37,9 +37,9 @@ func TestTextWriter_Process(t *testing.T) {
 	}
 }
 
-func Test_TextWriter_Process_NilWriter(t *testing.T) {
+func TestWriterProcessNilWriter(t *testing.T) {
 	opts := text.WriterOptions{Writer: nil}
-	tr := text.NewTextWriter(opts)
+	tr := text.NewWriter(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever
 	err := tr.Process(context.Background(), in, out)
@@ -48,19 +48,19 @@ func Test_TextWriter_Process_NilWriter(t *testing.T) {
 	}
 }
 
-func TestTextWriter_Process_close_input(t *testing.T) {
+func TestWriterProcessCloseInput(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
+	tw := text.NewWriter(text.WriterOptions{Writer: w})
 	workers.ATProcessCloseInput(tw, t)
 }
 
-func TestTextWriter_Process_close_output(t *testing.T) {
+func TestWriterProcessCloseOutput(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
+	tw := text.NewWriter(text.WriterOptions{Writer: w})
 	workers.ATProcessCloseOutput(tw, t)
 }
-func TestTextWriter_Process_cancel(t *testing.T) {
+func TestWriterProcessCancel(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewTextWriter(text.WriterOptions{Writer: w})
+	tw := text.NewWriter(text.WriterOptions{Writer: w})
 	workers.ATProcessCancel(tw, t)
 }
