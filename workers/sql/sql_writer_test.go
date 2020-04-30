@@ -101,7 +101,9 @@ func TestWriterProcessCloseInput(t *testing.T) {
 		ConnStr: dbname,
 		Table:   "members",
 	})
-	workers.ATProcessCloseInput(s, t)
+	if err := workers.ATProcessCloseInput(s); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestWriterProcessCloseOutput(t *testing.T) {
@@ -112,7 +114,9 @@ func TestWriterProcessCloseOutput(t *testing.T) {
 		ConnStr: dbname,
 		Table:   "members",
 	})
-	workers.ATProcessCloseOutput(s, t)
+	if err := workers.ATProcessCloseOutput(s); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestWriterProcessCancel(t *testing.T) {
@@ -123,5 +127,7 @@ func TestWriterProcessCancel(t *testing.T) {
 		ConnStr: dbname,
 		Table:   "members",
 	})
-	workers.ATProcessCancel(s, t)
+	if err := workers.ATProcessCancel(s); err != nil {
+		t.Fatal(err)
+	}
 }

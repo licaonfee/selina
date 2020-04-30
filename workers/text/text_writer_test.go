@@ -51,16 +51,22 @@ func TestWriterProcessNilWriter(t *testing.T) {
 func TestWriterProcessCloseInput(t *testing.T) {
 	w := &bytes.Buffer{}
 	tw := text.NewWriter(text.WriterOptions{Writer: w})
-	workers.ATProcessCloseInput(tw, t)
+	if err := workers.ATProcessCloseInput(tw); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestWriterProcessCloseOutput(t *testing.T) {
 	w := &bytes.Buffer{}
 	tw := text.NewWriter(text.WriterOptions{Writer: w})
-	workers.ATProcessCloseOutput(tw, t)
+	if err := workers.ATProcessCloseOutput(tw); err != nil {
+		t.Fatal(err)
+	}
 }
 func TestWriterProcessCancel(t *testing.T) {
 	w := &bytes.Buffer{}
 	tw := text.NewWriter(text.WriterOptions{Writer: w})
-	workers.ATProcessCancel(tw, t)
+	if err := workers.ATProcessCancel(tw); err != nil {
+		t.Fatal(err)
+	}
 }

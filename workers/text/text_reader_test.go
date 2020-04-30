@@ -40,21 +40,27 @@ func TestReaderProcessCancel(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
 	tr := text.NewReader(text.ReaderOptions{Reader: rd})
-	workers.ATProcessCancel(tr, t)
+	if err := workers.ATProcessCancel(tr); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestReaderProcessCloseInput(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
 	tr := text.NewReader(text.ReaderOptions{Reader: rd})
-	workers.ATProcessCloseInput(tr, t)
+	if err := workers.ATProcessCloseInput(tr); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestReaderProcessCloseOutput(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
 	tr := text.NewReader(text.ReaderOptions{Reader: rd})
-	workers.ATProcessCloseOutput(tr, t)
+	if err := workers.ATProcessCloseOutput(tr); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestReaderProcessNilReader(t *testing.T) {

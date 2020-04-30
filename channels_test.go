@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/licaonfee/selina"
 )
@@ -169,5 +172,25 @@ func Benchmark_Receiver(b *testing.B) {
 				}
 			}
 		})
+	}
+}
+
+func TestSendContext(t *testing.T) {
+	outA := make(chan []byte, 1)
+	msg := []byte("foo")
+	//Case 1: message delivered
+	if err := selina.SendContext(context.Background(), msg, outA); err != nil {
+		t.Fatalf("SendContext() err = %v", err)
+	}
+	got := <-outA
+	if !bytes.Equal(got, msg) {
+		t.Fatalf("SendContext() message corupted got = %v, want = %v", got, msg)
+	}
+	//Case 2: context canceled
+	const cancelAfter = time.Millisecond * 50
+	outB := make(chan []byte)
+	ctx, _ := context.WithTimeout(context.Background(), cancelAfter)
+	if err := selina.SendContext(ctx, msg, outB); err != context.DeadlineExceeded {
+		t.Fatalf("SendContext() unexpected err = %v", err)
 	}
 }

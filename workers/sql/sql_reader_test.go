@@ -111,7 +111,9 @@ func TestSQLReader_Process_close_input(t *testing.T) {
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
 	})
-	workers.ATProcessCloseInput(s, t)
+	if err := workers.ATProcessCloseInput(s); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestSQLReader_Process_close_output(t *testing.T) {
@@ -122,7 +124,9 @@ func TestSQLReader_Process_close_output(t *testing.T) {
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
 	})
-	workers.ATProcessCloseOutput(s, t)
+	if err := workers.ATProcessCloseOutput(s); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestSQLReader_Process_cancel(t *testing.T) {
@@ -133,5 +137,7 @@ func TestSQLReader_Process_cancel(t *testing.T) {
 		ConnStr: dbname,
 		Query:   "SELECT name FROM members;",
 	})
-	workers.ATProcessCancel(s, t)
+	if err := workers.ATProcessCancel(s); err != nil {
+		t.Fatal(err)
+	}
 }
