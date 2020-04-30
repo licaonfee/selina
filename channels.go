@@ -2,6 +2,8 @@ package selina
 
 import (
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 //Broadcaster allow to write same value to multiple groutines
@@ -79,4 +81,15 @@ func (r *Receiver) Watch(input <-chan []byte) {
 	r.initChan()
 	r.wg.Add(1)
 	go r.pipe(input)
+}
+
+//SendContext try to send msg to output, it returns an error if
+//context is canceled before msg is sent
+func SendContext(ctx context.Context, msg []byte, output chan<- []byte) error {
+	select {
+	case output <- msg:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

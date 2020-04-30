@@ -76,18 +76,9 @@ func serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error
 		if err != nil {
 			return err
 		}
-		if err := sendMessage(ctx, out, msg); err != nil {
+		if err := selina.SendContext(ctx, msg, out); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func sendMessage(ctx context.Context, out chan<- []byte, msg []byte) error {
-	select {
-	case out <- msg:
-	case <-ctx.Done():
-		return ctx.Err()
 	}
 	return nil
 }

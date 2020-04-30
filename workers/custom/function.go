@@ -9,18 +9,26 @@ import (
 
 var _ selina.Worker = (*Function)(nil)
 
+//UserFunction define an user custom modification
+//is safe to return input to avoid allocations
+//if an error is returned Process is aborted
+//a filter can be implemented returning (nil,nil)
 type UserFunction func(input []byte) ([]byte, error)
 
+//FunctionOptions customize a Function Worker
 type FunctionOptions struct {
 	Func UserFunction
 }
 
+//Function allow users to create custom Workers just with a function
 type Function struct {
 	opts FunctionOptions
 }
 
+//ErrNilFunction a nil UserFunction is provided via FunctionOptions
 var ErrNilFunction = errors.New("nil UserFunction passed to Worker")
 
+//Process implements selina.Workers
 func (f *Function) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
 	defer close(output)
 	if f.opts.Func == nil {
@@ -36,21 +44,15 @@ func (f *Function) Process(ctx context.Context, input <-chan []byte, output chan
 			if err != nil {
 				return err
 			}
-			if err := send(ctx, omsg, output); err != nil {
+			if omsg == nil {
+				continue
+			}
+			if err := selina.SendContext(ctx, omsg, output); err != nil {
 				return err
 			}
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-	}
-}
-
-func send(ctx context.Context, msg []byte, output chan<- []byte) error {
-	select {
-	case output <- msg:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
 	}
 }
 
