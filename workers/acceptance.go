@@ -3,7 +3,7 @@ package workers
 import (
 	"context"
 	"errors"
-	"testing"
+	"fmt"
 	"time"
 
 	"github.com/licaonfee/selina"
@@ -14,22 +14,34 @@ const closeInputTimeout = time.Millisecond * 50
 
 //ATProcessCancel a worker must terminate and return context.Canceled
 // when context is canceled
-func ATProcessCancel(w selina.Worker, t *testing.T) {
+func ATProcessCancel(w selina.Worker) error {
 	input := make(chan []byte)
 	output := make(chan []byte) //unbuffered so, process wait forever
 	ctx, cancel := context.WithCancel(context.Background())
+	errC := make(chan error, 1)
 	go func() {
 		time.Sleep(waitProcessSleepDuration) //wait to start process
 		cancel()
 	}()
-	if err := w.Process(ctx, input, output); err != context.Canceled {
-		t.Fatalf("Process() err = %v", err)
+	go func() {
+		errC <- w.Process(ctx, input, output)
+	}()
+	<-ctx.Done() //wait until context is canceled
+	select {
+	case err := <-errC:
+		if err != context.Canceled {
+			return fmt.Errorf("Process() err = %v", err)
+		}
+		return nil
+	case <-time.After(waitProcessSleepDuration):
+		return fmt.Errorf("Process() ignore ctx.Done()")
 	}
+
 }
 
 //ATProcessCloseInput a worker must finish its job and return nil
 // when input chanel (<-chan []byte )is closed
-func ATProcessCloseInput(w selina.Worker, t *testing.T) {
+func ATProcessCloseInput(w selina.Worker) error {
 	input := make(chan []byte)
 	output := make(chan []byte)
 	resp := make(chan error, 1)
@@ -45,22 +57,18 @@ func ATProcessCloseInput(w selina.Worker, t *testing.T) {
 	close(input)
 	select {
 	case err := <-resp:
-		if err != nil {
-			t.Fatalf("Process() err = %v , want = nil", err)
-		}
+		return err
 	case <-time.After(closeInputTimeout):
-		t.Fatalf("Process() does not terminate on closed input")
+		return fmt.Errorf("Process() does not terminate on closed input")
 	}
 }
 
 //ATProcessCloseOutput a worker must close its output channel on exit
-func ATProcessCloseOutput(w selina.Worker, t *testing.T) {
+func ATProcessCloseOutput(w selina.Worker) error {
 	input := make(chan []byte)
 	output := make(chan []byte)
 	close(input)
-	if err := w.Process(context.Background(), input, output); err != nil {
-		t.Fatalf("Process() err = %v", err)
-	}
+	_ = w.Process(context.Background(), input, output)
 	go func() {
 		for range output {
 		}
@@ -76,6 +84,7 @@ func ATProcessCloseOutput(w selina.Worker, t *testing.T) {
 		errC <- errors.New("channel is not closed")
 	}()
 	if err := <-errC; err != nil {
-		t.Fatalf("Process() err = %v", err)
+		return fmt.Errorf("Process() err = %v", err)
 	}
+	return nil
 }

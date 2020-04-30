@@ -70,14 +70,20 @@ func TestFilter_Process(t *testing.T) {
 
 func TestFilterProcessCancelation(t *testing.T) {
 	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
-	workers.ATProcessCancel(r, t)
+	if err := workers.ATProcessCancel(r); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestFilterProcessCloseInput(t *testing.T) {
 	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
-	workers.ATProcessCloseInput(r, t)
+	if err := workers.ATProcessCloseInput(r); err != nil {
+		t.Fatal(err)
+	}
 }
 func TestRegexFilterProcessCloseOutput(t *testing.T) {
 	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
-	workers.ATProcessCloseOutput(r, t)
+	if err := workers.ATProcessCloseOutput(r); err != nil {
+		t.Fatal(err)
+	}
 }

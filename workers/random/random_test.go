@@ -44,15 +44,21 @@ func TestRandomProcesslen(t *testing.T) {
 
 func TestRandomProcessCancel(t *testing.T) {
 	p := random.NewRandom(random.Options{Len: 8})
-	workers.ATProcessCancel(p, t)
+	if err := workers.ATProcessCancel(p); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestRandomProcessCloseInput(t *testing.T) {
 	p := random.NewRandom(random.Options{Len: 8})
-	workers.ATProcessCloseInput(p, t)
+	if err := workers.ATProcessCloseInput(p); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestRandomProcessCloseOutput(t *testing.T) {
 	p := random.NewRandom(random.Options{Len: 8})
-	workers.ATProcessCloseOutput(p, t)
+	if err := workers.ATProcessCloseOutput(p); err != nil {
+		t.Fatal(err)
+	}
 }
