@@ -3,26 +3,30 @@ package selina
 import (
 	"sync"
 
-	"golang.org/x/net/context"
+	"context"
 )
 
 //Broadcaster allow to write same value to multiple groutines
 type Broadcaster struct {
-	out []chan<- []byte
-	mx  sync.RWMutex
+	DataCounter
+	out     []chan<- []byte
+	mtx     sync.Mutex
+	running bool
 }
 
 //Broadcast read values from input and send it to output channels
 func (b *Broadcaster) Broadcast(input <-chan []byte) {
+	b.mtx.Lock()
+	b.running = true
+	b.mtx.Unlock()
 	for in := range input {
-		b.mx.RLock()
 		for _, out := range b.out {
 			data := make([]byte, len(in))
 			copy(data, in)
 			//TODO: this can be a deadlock
 			out <- data
+			b.SumData(data)
 		}
-		b.mx.RUnlock()
 	}
 	//close all channels when all data is readed
 	for _, c := range b.out {
@@ -30,10 +34,13 @@ func (b *Broadcaster) Broadcast(input <-chan []byte) {
 	}
 }
 
-//Client create an output chanel, it returns an error if Broadcast is already called
+//Client create an output chanel, it panics if Broadcast is already called
 func (b *Broadcaster) Client() <-chan []byte {
-	b.mx.RLock()
-	defer b.mx.RUnlock()
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	if b.running {
+		panic("call Client after Broadcast")
+	}
 	c := make(chan []byte)
 	b.out = append(b.out, c)
 	return c
@@ -42,6 +49,7 @@ func (b *Broadcaster) Client() <-chan []byte {
 //Receiver join multiple channels into a single output channel
 // this allow to add new channels after Receive is called
 type Receiver struct {
+	DataCounter
 	out chan []byte
 	wg  sync.WaitGroup
 	// this is used to always initialize channel and allow to use receiver with default value
@@ -51,6 +59,7 @@ type Receiver struct {
 func (r *Receiver) pipe(in <-chan []byte) {
 	for msg := range in {
 		r.out <- msg
+		r.SumData(msg)
 	}
 	r.wg.Done()
 }

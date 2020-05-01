@@ -30,8 +30,8 @@ type Writer struct {
 }
 
 //Process implements Worker interface
-func (s *Writer) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	defer close(output)
+func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
 	conn, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func (s *Writer) Process(ctx context.Context, input <-chan []byte, output chan<-
 	}
 	for {
 		select {
-		case data, ok := <-input:
+		case data, ok := <-args.Input:
 			if !ok {
 				return nil
 			}

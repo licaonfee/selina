@@ -12,7 +12,7 @@ import (
 // Nodes() return an slice with all instances of *Node
 type Pipeliner interface {
 	Run(context.Context) error
-	Stats() map[string]string
+	Stats() map[string]Stats
 	Nodes() []*Node
 }
 
@@ -54,9 +54,13 @@ func (p *SimplePipeline) Run(ctx context.Context) error {
 	return nil
 }
 
-//Stats TODO: implement
-func (p *SimplePipeline) Stats() map[string]string {
-	return nil
+//Stats returns a map with all nodes Stats object
+func (p *SimplePipeline) Stats() map[string]Stats {
+	ret := make(map[string]Stats)
+	for _, n := range p.nodes {
+		ret[n.Name] = n.Stats()
+	}
+	return ret
 }
 
 //Nodes return all instances of *Node

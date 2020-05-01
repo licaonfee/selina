@@ -39,9 +39,9 @@ func (t *Reader) cleanup() error {
 var ErrNilReader = errors.New("nil io.Reader provided to TextReader")
 
 //Process implements Worker interface
-func (t *Reader) Process(ctx context.Context, input <-chan []byte, out chan<- []byte) (err error) {
+func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
-		close(out)
+		close(args.Output)
 		cerr := t.cleanup()
 		if err == nil { //if an error occurred not override it
 			err = cerr
@@ -53,11 +53,11 @@ func (t *Reader) Process(ctx context.Context, input <-chan []byte, out chan<- []
 	sc := bufio.NewScanner(t.opts.Reader)
 	for sc.Scan() {
 		select {
-		case _, ok := <-input:
+		case _, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
-		case out <- []byte(sc.Text()):
+		case args.Output <- []byte(sc.Text()):
 		case <-ctx.Done():
 			return ctx.Err()
 		}

@@ -87,7 +87,8 @@ func TestFunctionProcess(t *testing.T) {
 			f := custom.NewFunction(tt.opts)
 			input := selina.SliceAsChannel(tt.msgs, true)
 			output := make(chan []byte, len(tt.want))
-			if err := f.Process(context.Background(), input, output); (err != nil) != tt.wantErr {
+			args := selina.ProcessArgs{Input: input, Output: output}
+			if err := f.Process(context.Background(), args); (err != nil) != tt.wantErr {
 				t.Fatalf("Process() unexpected err = %v", err)
 			}
 			got := selina.ChannelAsSlice(output)

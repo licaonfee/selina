@@ -23,8 +23,8 @@ func TestWriterProcess(t *testing.T) {
 	tw := text.NewWriter(text.WriterOptions{Writer: w})
 	in := selina.SliceAsChannel(fileContents, true)
 	out := make(chan []byte)
-
-	if err := tw.Process(context.Background(), in, out); err != nil {
+	args := selina.ProcessArgs{Input: in, Output: out}
+	if err := tw.Process(context.Background(), args); err != nil {
 		t.Fatalf("Process() err = %v", err)
 	}
 	sc := bufio.NewScanner(w)
@@ -42,7 +42,8 @@ func TestWriterProcessNilWriter(t *testing.T) {
 	tr := text.NewWriter(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever
-	err := tr.Process(context.Background(), in, out)
+	args := selina.ProcessArgs{Input: in, Output: out}
+	err := tr.Process(context.Background(), args)
 	if err != text.ErrNilWriter {
 		t.Fatalf("Process() err = %T(%v)", err, err)
 	}

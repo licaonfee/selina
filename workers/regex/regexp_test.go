@@ -53,8 +53,8 @@ func TestFilter_Process(t *testing.T) {
 				got = selina.ChannelAsSlice(output)
 				close(wait)
 			}()
-
-			if err := r.Process(context.Background(), input, output); (err != nil) != tt.wantErr {
+			args := selina.ProcessArgs{Input: input, Output: output}
+			if err := r.Process(context.Background(), args); (err != nil) != tt.wantErr {
 				t.Fatalf("RegexFilter.Process() error = %v", err)
 			}
 			if tt.wantErr {

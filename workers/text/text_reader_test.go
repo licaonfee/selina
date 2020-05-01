@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/licaonfee/selina"
+
 	"github.com/licaonfee/selina/workers"
 	"github.com/licaonfee/selina/workers/text"
 )
@@ -21,7 +23,8 @@ func TestReaderProcess(t *testing.T) {
 	tr := text.NewReader(opts)
 	input := make(chan []byte)
 	output := make(chan []byte, len(fileContents))
-	if err := tr.Process(context.Background(), input, output); err != nil {
+	args := selina.ProcessArgs{Input: input, Output: output}
+	if err := tr.Process(context.Background(), args); err != nil {
 		t.Fatalf("Process() err = %v", err)
 	}
 	got := []string{}
@@ -68,7 +71,8 @@ func TestReaderProcessNilReader(t *testing.T) {
 	tr := text.NewReader(opts)
 	in := make(chan []byte)
 	out := make(chan []byte) //unbuffered so, process wait forever
-	err := tr.Process(context.Background(), in, out)
+	args := selina.ProcessArgs{Input: in, Output: out}
+	err := tr.Process(context.Background(), args)
 	if err != text.ErrNilReader {
 		t.Fatalf("Process() err = %T(%v)", err, err)
 	}

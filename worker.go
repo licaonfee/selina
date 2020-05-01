@@ -9,5 +9,10 @@ import "context"
 // On finish, Process must close output channel and return error or nil
 type Worker interface {
 	//Process must close write only channel
-	Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error
+	Process(ctx context.Context, args ProcessArgs) error
+}
+
+type ProcessArgs struct {
+	Input  <-chan []byte
+	Output chan<- []byte
 }

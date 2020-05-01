@@ -2,14 +2,14 @@ package selina
 
 import (
 	"context"
-	"testing"
+	"fmt"
 	"time"
 )
 
 const stopPipelineTime = time.Millisecond * 20
 
 //ATPipelineStartAll all Nodes in a pipeline mus be started when pipeline.Start is called
-func ATPipelineStartAll(p Pipeliner, t *testing.T) {
+func ATPipelineStartAll(p Pipeliner) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	wait := make(chan struct{})
 	go func() {
@@ -20,17 +20,18 @@ func ATPipelineStartAll(p Pipeliner, t *testing.T) {
 	cancel()
 	<-wait
 	if len(p.Nodes()) == 0 {
-		t.Fatalf("Run() pipeline does not have nodes")
+		return fmt.Errorf("Run() pipeline does not have nodes")
 	}
 	for _, n := range p.Nodes() {
 		if !n.Running() {
-			t.Fatalf("Run() does not start all nodes")
+			return fmt.Errorf("Run() does not start all nodes")
 		}
 	}
+	return nil
 }
 
 //ATPipelineContextCancel context must be propagated to all Nodes
-func ATPipelineContextCancel(p Pipeliner, t *testing.T) {
+func ATPipelineContextCancel(p Pipeliner) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		time.Sleep(stopPipelineTime)
@@ -40,10 +41,23 @@ func ATPipelineContextCancel(p Pipeliner, t *testing.T) {
 	if m, ok := err.(*MultiError); ok {
 		for n, e := range m.InnerErrors {
 			if e != context.Canceled {
-				t.Fatalf("Run() node=%s, err= %v", n, err)
+				return fmt.Errorf("Run() node=%s, err= %v", n, err)
 			}
 		}
 	} else {
-		t.Fatalf("Run() err = %v", err)
+		return fmt.Errorf("Run() err = %v", err)
 	}
+	return nil //Why linter complains?
+}
+
+func ATPipelineStats(p Pipeliner) error {
+	if err := p.Run(context.Background()); err != nil {
+		return fmt.Errorf("Stats() err = %v", err)
+	}
+	stats := p.Stats()
+	if len(stats) != len(p.Nodes()) {
+		return fmt.Errorf("Stats() missing nodes got = %d , want = %d", len(stats), len(p.Nodes()))
+	}
+	return nil
+
 }

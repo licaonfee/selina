@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/licaonfee/selina"
+
 	"github.com/licaonfee/selina/workers"
 
 	"github.com/licaonfee/selina/workers/random"
@@ -31,7 +33,8 @@ func TestRandomProcesslen(t *testing.T) {
 				for range output {
 				}
 			}()
-			if err := r.Process(context.Background(), input, output); err != nil {
+			args := selina.ProcessArgs{Input: input, Output: output}
+			if err := r.Process(context.Background(), args); err != nil {
 				t.Fatalf("Process() err = %v", err)
 				return
 			}
