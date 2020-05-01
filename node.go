@@ -109,6 +109,7 @@ func (n *Node) Stop() error {
 	return ErrStopNotStarted
 }
 
+//Stats return Worker channels stats
 func (n *Node) Stats() Stats {
 	oc, ob := n.output.Stats()
 	ic, ib := n.input.Stats()
