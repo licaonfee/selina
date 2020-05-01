@@ -5,7 +5,7 @@ import (
 
 	dbsql "database/sql"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/licaonfee/selina"
 
@@ -67,7 +67,8 @@ func TestWriterProcess(t *testing.T) {
 			s := sql.NewWriter(tt.opts)
 			input := selina.SliceAsChannel(tt.in, true)
 			output := make(chan []byte)
-			if err := s.Process(context.Background(), input, output); (err != nil) != tt.wantErr {
+			args := selina.ProcessArgs{Input: input, Output: output}
+			if err := s.Process(context.Background(), args); (err != nil) != tt.wantErr {
 				t.Fatalf("Process() err = %v", err)
 				return
 			}
@@ -88,7 +89,6 @@ func TestWriterProcess(t *testing.T) {
 					t.Fatalf("Process() count = %d , expect %d", count, tt.expectCount)
 				}
 			}
-
 		})
 	}
 }

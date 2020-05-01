@@ -21,16 +21,16 @@ type Random struct {
 }
 
 //Process implements Worker interface
-func (r *Random) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	defer close(output)
+func (r *Random) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
 	for {
 		msg := make([]byte, r.opts.Len)
 		if _, err := rand.Read(msg); err != nil {
 			return err
 		}
 		select {
-		case output <- msg:
-		case _, ok := <-input:
+		case args.Output <- msg:
+		case _, ok := <-args.Input:
 			if !ok {
 				return nil
 			}

@@ -22,20 +22,20 @@ type Filter struct {
 }
 
 //Process implements Worker interface
-func (r *Filter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
+func (r *Filter) Process(ctx context.Context, args selina.ProcessArgs) error {
 	re, err := regexp.Compile(r.opts.Pattern)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		close(out)
+		close(args.Output)
 	}()
 	for {
 		select {
-		case msg, ok := <-in:
+		case msg, ok := <-args.Input:
 			if ok {
 				if re.Match(msg) {
-					out <- msg
+					args.Output <- msg
 				}
 			} else {
 				return nil

@@ -18,7 +18,7 @@ go get github.com/licaonfee/selina
 package main
 
 import (
-    "log"
+    "fmt"
     "os"
     "strings"
     "context"
@@ -41,7 +41,10 @@ func main() {
     output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: os.Stdout}))
     pipe := selina.NewSimplePipeline(input, filter, output)
     if err := pipe.Run(context.Background()); err != nil {
-        log.Printf("ERR: %v\n", err)
+        fmt.Printf("ERR: %v\n", err)
+    }
+    for name, stat := range pipe.Stats(){
+        fmt.Printf("Node:%s=%v\n", name, stat)
     }
 }
 ```

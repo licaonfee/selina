@@ -16,10 +16,10 @@ var _ selina.Worker = (*sliceWriter)(nil)
 //lazyWorker just wait until context is canceled, or in is closed
 type lazyWorker struct{}
 
-func (l *lazyWorker) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
+func (l *lazyWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
 	for {
 		select {
-		case _, ok := <-in:
+		case _, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
@@ -34,28 +34,28 @@ type produceN struct {
 	message []byte
 }
 
-func (p *produceN) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
+func (p *produceN) Process(ctx context.Context, args selina.ProcessArgs) error {
 	for i := 0; i < p.count; i++ {
-		output <- p.message
+		args.Output <- p.message
 	}
-	close(output)
+	close(args.Output)
 	return nil
 }
 
 type sink struct{}
 
-func (s *sink) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	for range input {
+func (s *sink) Process(ctx context.Context, args selina.ProcessArgs) error {
+	for range args.Input {
 	}
-	close(output)
+	close(args.Output)
 	return nil
 }
 
 type dummyWorker struct{}
 
-func (d *dummyWorker) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
-	for msg := range in {
-		out <- msg
+func (d *dummyWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
+	for msg := range args.Input {
+		args.Output <- msg
 	}
 	return nil
 }
@@ -64,10 +64,10 @@ type sliceReader struct {
 	values []string
 }
 
-func (r *sliceReader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
+func (r *sliceReader) Process(ctx context.Context, args selina.ProcessArgs) error {
 	rd := selina.SliceAsChannel(r.values, true)
 	for msg := range rd {
-		out <- msg
+		args.Output <- msg
 	}
 	return nil
 }
@@ -76,8 +76,8 @@ type sliceWriter struct {
 	values []string
 }
 
-func (w *sliceWriter) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) error {
-	for msg := range in {
+func (w *sliceWriter) Process(ctx context.Context, args selina.ProcessArgs) error {
+	for msg := range args.Input {
 		w.values = append(w.values, string(msg))
 	}
 

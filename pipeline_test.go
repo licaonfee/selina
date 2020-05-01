@@ -6,16 +6,29 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-func TestSimplePipeline_StartAll(t *testing.T) {
+func TestSimplePipelineStartAll(t *testing.T) {
 	p := selina.NewSimplePipeline(
 		selina.NewNode("n1", &lazyWorker{}),
 		selina.NewNode("n2", &lazyWorker{}))
-	selina.ATPipelineStartAll(p, t)
+	if err := selina.ATPipelineStartAll(p); err != nil {
+		t.Fatal(err)
+	}
 }
 
-func TestSimplePipeline_Cancel(t *testing.T) {
+func TestSimplePipelineCancel(t *testing.T) {
 	p := selina.NewSimplePipeline(
 		selina.NewNode("n1", &lazyWorker{}),
 		selina.NewNode("n2", &lazyWorker{}))
-	selina.ATPipelineContextCancel(p, t)
+	if err := selina.ATPipelineContextCancel(p); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSimplePipelineStats(t *testing.T) {
+	p := selina.NewSimplePipeline(
+		selina.NewNode("n1", &produceN{count: 10, message: []byte("b")}),
+		selina.NewNode("n2", &sink{}))
+	if err := selina.ATPipelineStats(p); err != nil {
+		t.Fatal(err)
+	}
 }

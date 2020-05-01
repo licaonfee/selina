@@ -92,7 +92,8 @@ func TestSQLReader_Process(t *testing.T) {
 			s := sql.NewReader(tt.opts)
 			input := make(chan []byte)
 			output := make(chan []byte, len(tt.want)+1)
-			err := s.Process(context.Background(), input, output)
+			args := selina.ProcessArgs{Input: input, Output: output}
+			err := s.Process(context.Background(), args)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("Process() err = %v , wantErr=%v", err, tt.wantErr)
 			}

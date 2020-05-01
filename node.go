@@ -6,6 +6,13 @@ import (
 	"sync"
 )
 
+type Stats struct {
+	Sent          int64
+	SentBytes     int64
+	Received      int64
+	ReceivedBytes int64
+}
+
 //Node a node that can send and receive data
 type Node struct {
 	Name    string
@@ -45,7 +52,14 @@ func newNodeContext(ctx context.Context, close <-chan struct{}) context.Context 
 	return me
 }
 
-func safeClose(c chan<- []byte) {
+func safeCloseByteChan(c chan<- []byte) {
+	defer func() {
+		_ = recover()
+	}()
+	close(c)
+}
+
+func safeCloseStrutChan(c chan struct{}) {
 	defer func() {
 		_ = recover()
 	}()
@@ -74,24 +88,31 @@ func (n *Node) Start(ctx context.Context) error {
 	inChan := n.input.Receive()
 	outChan := make(chan []byte)
 	go n.output.Broadcast(outChan)
-	defer safeClose(outChan)
+	defer safeCloseByteChan(outChan)
 	inCtx := newNodeContext(ctx, n.close)
-
-	return n.w.Process(inCtx, inChan, outChan)
+	args := ProcessArgs{Input: inChan, Output: outChan}
+	return n.w.Process(inCtx, args)
 }
 
 //ErrStopNotStarted returned when Stop is called before Start method
 var ErrStopNotStarted = errors.New("stopping a not started worker")
 
 //Stop stop worker in node, must be called after Start
+// successive calls to Stop does nothing
 func (n *Node) Stop() error {
 	n.opMx.RLock()
 	defer n.opMx.RUnlock()
 	if n.running {
-		close(n.close)
+		safeCloseStrutChan(n.close)
 		return nil
 	}
 	return ErrStopNotStarted
+}
+
+func (n *Node) Stats() Stats {
+	oc, ob := n.output.Stats()
+	ic, ib := n.input.Stats()
+	return Stats{Sent: oc, SentBytes: ob, Received: ic, ReceivedBytes: ib}
 }
 
 //NewNode create a new node that wraps Worker

@@ -27,15 +27,15 @@ type Reader struct {
 }
 
 //Process implements Worker interface
-func (s *Reader) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
-	defer close(out)
+func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
+	defer close(args.Output)
 	db, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
 		return err
 	}
 	for {
 		select {
-		case _, ok := <-in:
+		case _, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
@@ -44,7 +44,7 @@ func (s *Reader) Process(ctx context.Context, in <-chan []byte, out chan<- []byt
 			if err != nil {
 				return err
 			}
-			if err := serializeRows(ctx, rows, out); err != nil {
+			if err := serializeRows(ctx, rows, args.Output); err != nil {
 				return err
 			}
 			return nil

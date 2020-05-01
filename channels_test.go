@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/licaonfee/selina"
 )
@@ -189,7 +189,8 @@ func TestSendContext(t *testing.T) {
 	//Case 2: context canceled
 	const cancelAfter = time.Millisecond * 50
 	outB := make(chan []byte)
-	ctx, _ := context.WithTimeout(context.Background(), cancelAfter)
+	ctx, cancel := context.WithTimeout(context.Background(), cancelAfter)
+	defer cancel()
 	if err := selina.SendContext(ctx, msg, outB); err != context.DeadlineExceeded {
 		t.Fatalf("SendContext() unexpected err = %v", err)
 	}

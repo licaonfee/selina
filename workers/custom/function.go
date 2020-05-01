@@ -29,14 +29,14 @@ type Function struct {
 var ErrNilFunction = errors.New("nil UserFunction passed to Worker")
 
 //Process implements selina.Workers
-func (f *Function) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	defer close(output)
+func (f *Function) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
 	if f.opts.Func == nil {
 		return ErrNilFunction
 	}
 	for {
 		select {
-		case msg, ok := <-input:
+		case msg, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
@@ -47,7 +47,7 @@ func (f *Function) Process(ctx context.Context, input <-chan []byte, output chan
 			if omsg == nil {
 				continue
 			}
-			if err := selina.SendContext(ctx, omsg, output); err != nil {
+			if err := selina.SendContext(ctx, omsg, args.Output); err != nil {
 				return err
 			}
 		case <-ctx.Done():

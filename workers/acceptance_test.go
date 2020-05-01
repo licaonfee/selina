@@ -12,13 +12,13 @@ import (
 //this worker implements all required functionality
 type idealWorker struct{}
 
-func (i *idealWorker) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
+func (i *idealWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
 	//A Worker must close output in all exit paths
-	defer close(output)
+	defer close(args.Output)
 	//when input is closed return nil
 	for {
 		select {
-		case _, ok := <-input:
+		case _, ok := <-args.Input:
 			if !ok { //when input is closed and drained return nil
 				return nil
 			}
@@ -30,18 +30,18 @@ func (i *idealWorker) Process(ctx context.Context, input <-chan []byte, output c
 
 type badContextWorker struct{}
 
-func (b *badContextWorker) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	defer close(output)
+func (b *badContextWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
 	//just ignore context
-	for range input {
+	for range args.Input {
 	}
 	return nil
 }
 
 type badInputWorker struct{}
 
-func (b *badInputWorker) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
-	defer close(output)
+func (b *badInputWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
 	//ignore input channel
 	<-ctx.Done()
 	return ctx.Err()
@@ -49,10 +49,10 @@ func (b *badInputWorker) Process(ctx context.Context, input <-chan []byte, outpu
 
 type badOutputWorker struct{}
 
-func (b *badOutputWorker) Process(ctx context.Context, input <-chan []byte, output chan<- []byte) error {
+func (b *badOutputWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
 	for {
 		select {
-		case _, ok := <-input:
+		case _, ok := <-args.Input:
 			if !ok { //when input is closed and drained return nil
 				return nil
 			}

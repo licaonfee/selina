@@ -39,9 +39,9 @@ func (t *Writer) cleanup() error {
 var ErrNilWriter = errors.New("nil io.Writer provided to TextWriter")
 
 //Process implements Worker interface
-func (t *Writer) Process(ctx context.Context, in <-chan []byte, out chan<- []byte) (err error) {
+func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
-		close(out)
+		close(args.Output)
 		cerr := t.cleanup()
 		if err == nil { //if an error occurred not override it
 			err = cerr
@@ -59,7 +59,7 @@ func (t *Writer) Process(ctx context.Context, in <-chan []byte, out chan<- []byt
 	newLine := []byte("\n")
 	for {
 		select {
-		case msg, ok := <-in:
+		case msg, ok := <-args.Input:
 			if !ok {
 				return nil
 			}

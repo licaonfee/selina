@@ -24,7 +24,8 @@ func ATProcessCancel(w selina.Worker) error {
 		cancel()
 	}()
 	go func() {
-		errC <- w.Process(ctx, input, output)
+		args := selina.ProcessArgs{Input: input, Output: output}
+		errC <- w.Process(ctx, args)
 	}()
 	<-ctx.Done() //wait until context is canceled
 	select {
@@ -46,7 +47,8 @@ func ATProcessCloseInput(w selina.Worker) error {
 	output := make(chan []byte)
 	resp := make(chan error, 1)
 	go func() {
-		resp <- w.Process(context.Background(), input, output)
+		args := selina.ProcessArgs{Input: input, Output: output}
+		resp <- w.Process(context.Background(), args)
 	}()
 	go func() {
 		for range output {
@@ -68,7 +70,8 @@ func ATProcessCloseOutput(w selina.Worker) error {
 	input := make(chan []byte)
 	output := make(chan []byte)
 	close(input)
-	_ = w.Process(context.Background(), input, output)
+	args := selina.ProcessArgs{Input: input, Output: output}
+	_ = w.Process(context.Background(), args)
 	go func() {
 		for range output {
 		}
