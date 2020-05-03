@@ -50,13 +50,19 @@ func (n *Node) Running() bool {
 // it returns next node to be chained again
 // if next is already chained this operation does nothing
 func (n *Node) Chain(next *Node) *Node {
-	if _, ok := n.chained[next.ID()]; ok {
+	if n.IsChained(next) {
 		return next
 	}
 	c := n.output.Client()
 	next.input.Watch(c)
 	n.chained[next.ID()] = struct{}{}
 	return next
+}
+
+//IsChained returns true if Chain was called before with other
+func (n *Node) IsChained(other *Node) bool {
+	_, ok := n.chained[n.ID()]
+	return ok
 }
 
 type nodeContext struct {

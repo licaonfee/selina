@@ -3,22 +3,22 @@ package selina_test
 import (
 	"context"
 	"reflect"
-	"sync"
 	"testing"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/licaonfee/selina"
 )
 
-func startNode(wg *sync.WaitGroup, n *selina.Node) {
-	wg.Add(1)
-	go func() {
-		_ = n.Start(context.Background())
-		wg.Done()
-	}()
+func startNode(ctx context.Context, n *selina.Node, t *testing.T) func() error {
+	return func() error {
+		t.Logf("Start %s", n.Name())
+		return n.Start(ctx)
+	}
 }
 
-func TestNode_Chain(t *testing.T) {
+func TestNodeChainPassMessages(t *testing.T) {
 	r := &sliceReader{values: []string{"1", "2", "3"}}
 	w := &sliceWriter{}
 	n1 := selina.NewNode("A", r)
@@ -29,12 +29,14 @@ func TestNode_Chain(t *testing.T) {
 		Chain(n3).
 		Chain(n4)
 
-	wg := &sync.WaitGroup{}
-	startNode(wg, n1)
-	startNode(wg, n2)
-	startNode(wg, n3)
-	startNode(wg, n4)
-	wg.Wait()
+	g, ctx := errgroup.WithContext(context.Background())
+	g.Go(startNode(ctx, n1, t))
+	g.Go(startNode(ctx, n2, t))
+	g.Go(startNode(ctx, n3, t))
+	g.Go(startNode(ctx, n4, t))
+	if err := g.Wait(); err != nil {
+		t.Fatalf("Chain() err = %v", err)
+	}
 	if !reflect.DeepEqual(r.values, w.values) {
 		t.Fatalf("Chain() values differ got %v , want %v", w.values, r.values)
 	}
