@@ -27,6 +27,6 @@ func main() {
 		fmt.Printf("ERR: %v\n", err)
 	}
 	for name, stat := range pipe.Stats() {
-		fmt.Printf("Node:%s=%#v\n", name, stat)
+		fmt.Printf("Node:%s=%v\n", name, stat)
 	}
 }

@@ -1,6 +1,8 @@
 package selina
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+)
 
 //DataCounter a simple atomic wrapper
 type DataCounter struct {

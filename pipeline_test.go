@@ -27,7 +27,8 @@ func TestSimplePipelineCancel(t *testing.T) {
 func TestSimplePipelineStats(t *testing.T) {
 	p := selina.NewSimplePipeline(
 		selina.NewNode("n1", &produceN{count: 10, message: []byte("b")}),
-		selina.NewNode("n2", &sink{}))
+		selina.NewNode("n2", &dummyWorker{}),
+		selina.NewNode("n3", &sink{}))
 	if err := selina.ATPipelineStats(p); err != nil {
 		t.Fatal(err)
 	}

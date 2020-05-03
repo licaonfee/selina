@@ -38,16 +38,10 @@ func ATPipelineContextCancel(p Pipeliner) error {
 		cancel()
 	}()
 	err := p.Run(ctx)
-	if m, ok := err.(*MultiError); ok {
-		for n, e := range m.InnerErrors {
-			if e != context.Canceled {
-				return fmt.Errorf("Run() node=%s, err= %v", n, err)
-			}
-		}
-	} else {
+	if err != context.Canceled {
 		return fmt.Errorf("Run() err = %v", err)
 	}
-	return nil //Why linter complains?
+	return nil
 }
 
 func ATPipelineStats(p Pipeliner) error {
