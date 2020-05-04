@@ -61,7 +61,7 @@ func (n *Node) Chain(next *Node) *Node {
 
 //IsChained returns true if Chain was called before with other
 func (n *Node) IsChained(other *Node) bool {
-	_, ok := n.chained[n.ID()]
+	_, ok := n.chained[other.ID()]
 	return ok
 }
 
@@ -151,9 +151,9 @@ func init() {
 	chid := make(chan string)
 	uniqueID = chid
 	go func() {
-		t := time.Now().Unix()
-		entropy := ulid.Monotonic(rand.New(rand.NewSource(t)), uint64(t))
+		entropy := ulid.Monotonic(rand.New(rand.NewSource(time.Now().Unix())), 0)
 		for {
+			t := time.Now().Unix()
 			id, err := ulid.New(uint64(t), entropy)
 			if err != nil {
 				continue
