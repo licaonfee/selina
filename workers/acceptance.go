@@ -3,7 +3,6 @@ package workers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/licaonfee/selina"
@@ -11,6 +10,10 @@ import (
 
 const waitProcessSleepDuration = time.Millisecond * 50
 const closeInputTimeout = time.Millisecond * 50
+
+var ErrProcessIgnoreCtx = errors.New("ignored context.Done")
+var ErrNotTerminatedOnCloseInput = errors.New("not terminate on closed input")
+var ErrOutputNotClosed = errors.New("output channel is not closed")
 
 //ATProcessCancel a worker must terminate and return context.Canceled
 // when context is canceled
@@ -31,11 +34,11 @@ func ATProcessCancel(w selina.Worker) error {
 	select {
 	case err := <-errC:
 		if err != context.Canceled {
-			return fmt.Errorf("Process() err = %v", err)
+			return err
 		}
 		return nil
 	case <-time.After(waitProcessSleepDuration):
-		return fmt.Errorf("Process() ignore ctx.Done()")
+		return ErrProcessIgnoreCtx
 	}
 
 }
@@ -61,7 +64,7 @@ func ATProcessCloseInput(w selina.Worker) error {
 	case err := <-resp:
 		return err
 	case <-time.After(closeInputTimeout):
-		return fmt.Errorf("Process() does not terminate on closed input")
+		return ErrNotTerminatedOnCloseInput
 	}
 }
 
@@ -84,10 +87,10 @@ func ATProcessCloseOutput(w selina.Worker) error {
 			}
 		}()
 		close(output)
-		errC <- errors.New("channel is not closed")
+		errC <- ErrOutputNotClosed
 	}()
 	if err := <-errC; err != nil {
-		return fmt.Errorf("Process() err = %v", err)
+		return err
 	}
 	return nil
 }
