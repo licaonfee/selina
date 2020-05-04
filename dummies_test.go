@@ -62,8 +62,10 @@ func (s *sink) Process(ctx context.Context, args selina.ProcessArgs) error {
 			}
 		case <-ctx.Done():
 			return ctx.Err()
+
 		}
 	}
+
 }
 
 type dummyWorker struct{}

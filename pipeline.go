@@ -51,16 +51,30 @@ func (p *SimplePipeline) Nodes() []*Node {
 	return ret
 }
 
-//NewSimplePipeline create a linear pipeline
-func NewSimplePipeline(n ...*Node) Pipeliner {
+//LinealPipeline creates a Pipeliner
+//Nodes in "nodes" are chained in a slingle branch Pipeline
+//Node(0)->Node(1)->Node(2)->....Node(n)
+func LinealPipeline(nodes ...*Node) Pipeliner {
 	p := &SimplePipeline{}
 	p.nodes = make(map[string]*Node)
-	for i := 1; i < len(n); i++ {
-		prev := n[i-1]
-		curr := n[i]
+	for i := 1; i < len(nodes); i++ {
+		prev := nodes[i-1]
+		curr := nodes[i]
 		prev.Chain(curr)
 		p.nodes[prev.ID()] = prev
 		p.nodes[curr.ID()] = curr
+	}
+	return p
+}
+
+//FreePipeline provide a method to run arbitrary chained Nodes
+//this method does not call Node.Chain
+func FreePipeline(nodes ...*Node) Pipeliner {
+	p := &SimplePipeline{}
+	p.nodes = make(map[string]*Node)
+	for _, n := range nodes {
+		p.nodes[n.ID()] = n
+
 	}
 	return p
 }

@@ -29,7 +29,28 @@ func sameElements(a [][]byte, b [][]byte) bool {
 	return matches == len(a)
 }
 
-func TestBroadcaster_Broadcast(t *testing.T) {
+func TestBroadcasterBroadcastPanic(t *testing.T) {
+	const waitForbroascast = time.Millisecond * 20
+	b := selina.Broadcaster{}
+	_ = b.Client() //drop a client
+	in := make(chan []byte)
+	go func() {
+		b.Broadcast(in)
+	}()
+	time.Sleep(waitForbroascast)
+	panicCall := func() (err error) {
+		defer func() {
+			err = fmt.Errorf("%v", recover())
+		}()
+		_ = b.Client()
+		return
+	}
+	if err := panicCall(); err == nil || err.Error() != "call Client after Broadcast" {
+		t.Fatalf("Broadcast allow add clients while running")
+	}
+
+}
+func TestBroadcasterBroadcast(t *testing.T) {
 	const clientCount = 2
 	inChan := selina.SliceAsChannel([]string{"foo", "bar", "baz"}, true)
 	want := [][]byte{[]byte("foo"), []byte("bar"), []byte("baz")}
@@ -57,7 +78,7 @@ func TestBroadcaster_Broadcast(t *testing.T) {
 	wg.Wait()
 }
 
-func TestReceiver_Receive(t *testing.T) {
+func TestReceiverReceive(t *testing.T) {
 	const serversCount = 3
 	const messageCount = 3
 	var want [][]byte
@@ -87,7 +108,7 @@ func readChan(in <-chan []byte) {
 	}
 }
 
-func Benchmark_Broadcaster(b *testing.B) {
+func BenchmarkBroadcaster(b *testing.B) {
 	benchMarks := []struct {
 		name        string
 		clientCount int
@@ -128,7 +149,7 @@ func Benchmark_Broadcaster(b *testing.B) {
 	}
 }
 
-func Benchmark_Receiver(b *testing.B) {
+func BenchmarkReceiver(b *testing.B) {
 	//This function need to be improved to acquire more precise data
 	benchMarks := []struct {
 		name         string

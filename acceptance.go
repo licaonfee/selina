@@ -2,11 +2,15 @@ package selina
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 )
 
 const stopPipelineTime = time.Millisecond * 20
+
+var ErrNotHaveNodes = errors.New("Pipeliner does not have nodes")
+var ErrInconsistentStart = errors.New("Pipeliner does not start all nodes")
+var ErrMissingStats = errors.New("missing nodes in Stats map")
 
 //ATPipelineStartAll all Nodes in a pipeline mus be started when pipeline.Start is called
 func ATPipelineStartAll(p Pipeliner) error {
@@ -20,11 +24,11 @@ func ATPipelineStartAll(p Pipeliner) error {
 	cancel()
 	<-wait
 	if len(p.Nodes()) == 0 {
-		return fmt.Errorf("Run() pipeline does not have nodes")
+		return ErrNotHaveNodes
 	}
 	for _, n := range p.Nodes() {
 		if !n.Running() {
-			return fmt.Errorf("Run() does not start all nodes")
+			return ErrInconsistentStart
 		}
 	}
 	return nil
@@ -39,19 +43,18 @@ func ATPipelineContextCancel(p Pipeliner) error {
 	}()
 	err := p.Run(ctx)
 	if err != context.Canceled {
-		return fmt.Errorf("Run() err = %v", err)
+		return err
 	}
 	return nil
 }
 
 func ATPipelineStats(p Pipeliner) error {
 	if err := p.Run(context.Background()); err != nil {
-		return fmt.Errorf("Stats() err = %v", err)
+		return err
 	}
 	stats := p.Stats()
 	if len(stats) != len(p.Nodes()) {
-		return fmt.Errorf("Stats() missing nodes got = %d , want = %d", len(stats), len(p.Nodes()))
+		return ErrMissingStats
 	}
 	return nil
-
 }
