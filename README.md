@@ -6,6 +6,14 @@ Simple Pipeline for go, inspired on ratchet <https://github.com/dailyburn/ratche
 
 Unstable API, please use go modules
 
+- [selina](#selina)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Design](#design)
+    - [Pipeline](#pipeline)
+    - [Node](#node)
+    - [Worker](#worker)
+
 ## Installation
 
 ```bash
@@ -48,3 +56,23 @@ func main() {
     }
 }
 ```
+
+## Design
+
+Selina have three main components
+
+- Pipeline
+- Node
+- Worker
+
+### Pipeline
+
+Start data processing and manage all chained nodes in a single object
+
+### Node
+
+Contains methods to pass data from Worker to Worker and get metrics
+
+### Worker
+
+All data Extraction/Transformation/Load logic is encapsulated in a Worker instance
