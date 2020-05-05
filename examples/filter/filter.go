@@ -22,11 +22,11 @@ func main() {
 	//https://regex101.com/r/7ZS3Uw/1
 	filter := selina.NewNode("Filter", regex.NewFilter(regex.FilterOptions{Pattern: "^[^#].+"}))
 	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: os.Stdout}))
-	pipe := selina.NewSimplePipeline(input, filter, output)
+	pipe := selina.LinealPipeline(input, filter, output)
 	if err := pipe.Run(context.Background()); err != nil {
 		fmt.Printf("ERR: %v\n", err)
 	}
 	for name, stat := range pipe.Stats() {
-		fmt.Printf("Node:%s=%#v\n", name, stat)
+		fmt.Printf("Node:%s=%v\n", name, stat)
 	}
 }

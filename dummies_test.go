@@ -35,29 +35,56 @@ type produceN struct {
 }
 
 func (p *produceN) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
 	for i := 0; i < p.count; i++ {
-		args.Output <- p.message
+		select {
+		case args.Output <- p.message:
+		case <-ctx.Done():
+			return ctx.Err()
+		case _, ok := <-args.Input:
+			if !ok {
+				return nil
+			}
+		}
 	}
-	close(args.Output)
 	return nil
 }
 
 type sink struct{}
 
 func (s *sink) Process(ctx context.Context, args selina.ProcessArgs) error {
-	for range args.Input {
+	defer close(args.Output)
+	for {
+		select {
+		case _, ok := <-args.Input:
+			if !ok {
+				return nil
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+
+		}
 	}
-	close(args.Output)
-	return nil
+
 }
 
 type dummyWorker struct{}
 
 func (d *dummyWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
-	for msg := range args.Input {
-		args.Output <- msg
+	defer close(args.Output)
+	for {
+		select {
+		case msg, ok := <-args.Input:
+			if !ok {
+				return nil
+			}
+			if err := selina.SendContext(ctx, msg, args.Output); err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
-	return nil
 }
 
 type sliceReader struct {
@@ -65,9 +92,20 @@ type sliceReader struct {
 }
 
 func (r *sliceReader) Process(ctx context.Context, args selina.ProcessArgs) error {
-	rd := selina.SliceAsChannel(r.values, true)
-	for msg := range rd {
-		args.Output <- msg
+	defer close(args.Output)
+	for _, v := range r.values {
+		select {
+		default:
+			if err := selina.SendContext(ctx, []byte(v), args.Output); err != nil {
+				return err
+			}
+		case _, ok := <-args.Input:
+			if !ok {
+				return nil
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 	return nil
 }
@@ -77,9 +115,16 @@ type sliceWriter struct {
 }
 
 func (w *sliceWriter) Process(ctx context.Context, args selina.ProcessArgs) error {
-	for msg := range args.Input {
-		w.values = append(w.values, string(msg))
+	defer close(args.Output)
+	for {
+		select {
+		case msg, ok := <-args.Input:
+			if !ok {
+				return nil
+			}
+			w.values = append(w.values, string(msg))
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
-
-	return nil
 }

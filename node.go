@@ -3,10 +3,15 @@ package selina
 import (
 	"context"
 	"errors"
+	"math/rand"
 	"sync"
+	"time"
+
+	"github.com/oklog/ulid/v2"
 )
 
 type Stats struct {
+	Time          time.Time
 	Sent          int64
 	SentBytes     int64
 	Received      int64
@@ -15,13 +20,23 @@ type Stats struct {
 
 //Node a node that can send and receive data
 type Node struct {
-	Name    string
+	id      string
+	name    string
 	output  Broadcaster
 	input   Receiver
 	w       Worker
 	close   chan struct{}
 	running bool
 	opMx    sync.RWMutex
+	chained map[string]struct{}
+}
+
+func (n *Node) ID() string {
+	return n.id
+}
+
+func (n *Node) Name() string {
+	return n.name
 }
 
 //Running true if Start() method was called
@@ -31,11 +46,23 @@ func (n *Node) Running() bool {
 	return n.running
 }
 
-//Chain send messages emitted by worker to next node, it returns next node to be chained again
+//Chain send messages emitted by worker to next node,
+// it returns next node to be chained again
+// if next is already chained this operation does nothing
 func (n *Node) Chain(next *Node) *Node {
+	if n.IsChained(next) {
+		return next
+	}
 	c := n.output.Client()
 	next.input.Watch(c)
+	n.chained[next.ID()] = struct{}{}
 	return next
+}
+
+//IsChained returns true if Chain was called before with other
+func (n *Node) IsChained(other *Node) bool {
+	_, ok := n.chained[other.ID()]
+	return ok
 }
 
 type nodeContext struct {
@@ -116,9 +143,37 @@ func (n *Node) Stats() Stats {
 	return Stats{Sent: oc, SentBytes: ob, Received: ic, ReceivedBytes: ib}
 }
 
+var uniqueID <-chan string
+
+//nolint gonoinits
+//this function ensures a unique id for all nodes
+func init() {
+	chid := make(chan string)
+	uniqueID = chid
+	go func() {
+		entropy := ulid.Monotonic(rand.New(rand.NewSource(time.Now().Unix())), 0)
+		for {
+			t := time.Now().Unix()
+			id, err := ulid.New(uint64(t), entropy)
+			if err != nil {
+				continue
+			}
+			chid <- id.String()
+		}
+	}()
+}
+
+func getID() string {
+	return <-uniqueID
+}
+
 //NewNode create a new node that wraps Worker
+// name is a user defined identifier, internally
+// Node generates an unique id
 func NewNode(name string, w Worker) *Node {
-	n := &Node{w: w, Name: name}
+	id := getID()
+	n := &Node{id: id, w: w, name: name}
+	n.chained = make(map[string]struct{})
 	n.close = make(chan struct{})
 	return n
 }
