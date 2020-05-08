@@ -11,8 +11,13 @@ import (
 const waitProcessSleepDuration = time.Millisecond * 50
 const closeInputTimeout = time.Millisecond * 50
 
+//ErrProcessIgnoreCtx worker.Process does not terminate when context is canceled
 var ErrProcessIgnoreCtx = errors.New("ignored context.Done")
+
+//ErrNotTerminatedOnCloseInput worker.Process does not finish when input channel is closed
 var ErrNotTerminatedOnCloseInput = errors.New("not terminate on closed input")
+
+//ErrOutputNotClosed worker.Process does not close output channel
 var ErrOutputNotClosed = errors.New("output channel is not closed")
 
 //ATProcessCancel a worker must terminate and return context.Canceled

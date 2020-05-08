@@ -17,7 +17,8 @@ type WriterOptions struct {
 	Writer io.Writer
 	//AutoClose when true and Writer implements io.Closer
 	// io.Closer.Close() method will be called on finalization
-	AutoClose bool
+	AutoClose   bool
+	SkipNewLine bool
 }
 
 //Writer a Worker that write data to a given io.Writer in text format
@@ -67,9 +68,11 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			if err != nil {
 				return
 			}
-			_, err = w.Write(newLine)
-			if err != nil {
-				return
+			if !t.opts.SkipNewLine {
+				_, err = w.Write(newLine)
+				if err != nil {
+					return
+				}
 			}
 
 		case <-ctx.Done():
