@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"io"
 	"sort"
 	"strconv"
 
@@ -111,7 +112,9 @@ func sendData(ctx context.Context, row []string, w *csv.Writer, buff *bytes.Buff
 var _ selina.Worker = (*Decoder)(nil)
 
 type DecoderOptions struct {
-	Header []string
+	Header  []string
+	Comma   rune
+	Comment rune
 }
 
 type Decoder struct {
@@ -123,6 +126,13 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	if args.Input == nil {
 		return selina.ErrNilUpstream
 	}
+	buff := &bytes.Buffer{}
+	r := csv.NewReader(buff)
+	if d.opts.Comma != rune(0) {
+		r.Comma = d.opts.Comma
+	}
+	r.Comment = d.opts.Comment
+	r.ReuseRecord = true
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,11 +141,14 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			if !ok {
 				return nil
 			}
-			buff := bytes.NewReader(msg)
-			r := csv.NewReader(buff)
+			buff.Reset()
+			_, _ = buff.Write(msg)
 			row, err := r.Read()
 			if err != nil {
-				return err
+				if err != io.EOF {
+					return err
+				}
+				continue
 			}
 			res := make(map[string]interface{})
 			for i := 0; i < len(row); i++ {

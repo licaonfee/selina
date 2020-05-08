@@ -2,6 +2,8 @@ package csv_test
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -33,6 +35,13 @@ func TestEncoderProcess(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name:    "Use pipe as comma",
+			opts:    csv.EncoderOptions{Header: []string{"name", "id"}, Comma: '|'},
+			input:   []string{`{"name": "Selina","id":0}`, `{"name":"Lizbeth","id":1}`},
+			want:    []string{`name|id` + "\n", `Selina|0` + "\n", `Lizbeth|1` + "\n"},
+			wantErr: nil,
+		},
+		{
 			name:    "filter header",
 			opts:    csv.EncoderOptions{Header: []string{"name"}},
 			input:   []string{`{"name": "Selina","id":0}`, `{"name":"Lizbeth","id":1}`},
@@ -53,6 +62,13 @@ func TestEncoderProcess(t *testing.T) {
 			want:    []string{`name,id,color` + "\n", `Selina,0,yellow` + "\n", `Lizbeth,1,` + "\n"},
 			wantErr: nil,
 		},
+		{
+			name:    "Invalid JSON",
+			opts:    csv.EncoderOptions{Header: []string{"name", "id", "color"}},
+			input:   []string{`{"name": "Selina","id"0, "color":"yellow"}`, `{"name":"Lizbeth","id":1}`},
+			want:    []string{},
+			wantErr: &json.SyntaxError{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -63,7 +79,7 @@ func TestEncoderProcess(t *testing.T) {
 			}
 			output := make(chan []byte, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
-			if err := c.Process(context.Background(), args); err != tt.wantErr {
+			if err := c.Process(context.Background(), args); err != tt.wantErr && errors.Is(err, tt.wantErr) {
 				t.Fatalf("Process() err =%v", err)
 			}
 			got := selina.ChannelAsSlice(output)
@@ -113,6 +129,20 @@ func TestDecoderProcess(t *testing.T) {
 			name:    "Success",
 			opts:    csv.DecoderOptions{Header: []string{"id", "name"}},
 			input:   []string{`6,Selina`, `7,Lizbeth`},
+			want:    []string{`{"id":"6","name":"Selina"}`, `{"id":"7","name":"Lizbeth"}`},
+			wantErr: nil,
+		},
+		{
+			name:    "pipe is comma",
+			opts:    csv.DecoderOptions{Header: []string{"id", "name"}, Comma: '|'},
+			input:   []string{`6|Selina`, `7|Lizbeth`},
+			want:    []string{`{"id":"6","name":"Selina"}`, `{"id":"7","name":"Lizbeth"}`},
+			wantErr: nil,
+		},
+		{
+			name:    "skip comments",
+			opts:    csv.DecoderOptions{Header: []string{"id", "name"}, Comment: '#'},
+			input:   []string{`6,Selina`, `#8,Maria`, `7,Lizbeth`},
 			want:    []string{`{"id":"6","name":"Selina"}`, `{"id":"7","name":"Lizbeth"}`},
 			wantErr: nil,
 		},
