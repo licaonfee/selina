@@ -10,7 +10,7 @@ deps:
 		$(GOCMD) mod download
 
 utest:
-		$(GOTEST) -race -count 1 -timeout 30s -parallel 1 -coverprofile coverage.out  ./... 
+		$(GOTEST) -race -count 1 -timeout 30s  -coverprofile coverage.out  ./... 
 cover:
 		$(GOTOOL) cover -func=coverage.out 
 
