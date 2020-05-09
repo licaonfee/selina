@@ -63,6 +63,6 @@ func main() {
 	}
 	for _, node := range pipe.Nodes() {
 		stat := node.Stats()
-		fmt.Printf("Node:%s=Send: %d, Recv: %d\n", node.Name(), stat.Sent, stat.Received)
+		fmt.Printf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received)
 	}
 }
