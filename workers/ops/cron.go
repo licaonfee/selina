@@ -10,11 +10,16 @@ import (
 
 var _ selina.Worker = (*Cron)(nil)
 
+//CronOptions
 type CronOptions struct {
-	Spec    string
+	//Spec use same format as github.com/robfig/cron/v3
+	//Second Minute Hour DayOfMonth Month DayOfWeek
+	Spec string
+	//Which message will be sent every schedule
 	Message []byte
 }
 
+//Cron send an specifi message at scheduled intervals
 type Cron struct {
 	opts CronOptions
 }
@@ -27,6 +32,8 @@ func createCron() {
 	globalCron.Start()
 }
 
+//Process add a job scec, any message received will be discarded
+// when input is closed this worker return nil
 func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
 	initCron.Do(createCron)
 	tick := make(chan struct{})
@@ -59,6 +66,7 @@ func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
+//NewCron create a new Cron Worker with given options
 func NewCron(opts CronOptions) *Cron {
 	return &Cron{opts: opts}
 }
