@@ -3,6 +3,7 @@
 ![Test](https://github.com/licaonfee/selina/workflows/Run%20test/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/licaonfee/selina)](https://goreportcard.com/report/github.com/licaonfee/selina)
 [![Coverage Status](https://coveralls.io/repos/github/licaonfee/selina/badge.svg?branch=master)](https://coveralls.io/github/licaonfee/selina?branch=master)
+[![godoc](http://img.shields.io/badge/godoc-reference-5272B4.svg?style=flat-square)](https://pkg.go.dev/github.com/licaonfee/selina?tab=doc)
 
 Simple Pipeline for go, inspired on ratchet <https://github.com/dailyburn/ratchet>
 
@@ -66,6 +67,8 @@ Selina have three main components
 - Pipeline
 - Node
 - Worker
+
+Some utility functions are provided to build pipelines, ```LinealPipeline(n ... Node)*Pipeliner``` chain all nodes in same order as their are passed. ```FreePipeline(n ...Node)*Pipeliner``` Just runs all nodes without chain them so you can build any pipeline, including ciclic graphs or aciclic graphs
 
 ### Pipeline
 

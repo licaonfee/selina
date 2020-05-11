@@ -16,8 +16,10 @@ var _ selina.Worker = (*Encoder)(nil)
 
 type EncoderOptions struct {
 	//Header acts as a filter, if a field is not in header is skipped
-	Header  []string
-	Comma   rune
+	Header []string
+	//Comma default ,
+	Comma rune
+	//UseCRLF use \r\n instead of \n
 	UseCRLF bool
 }
 type Encoder struct {
