@@ -68,6 +68,8 @@ Selina have three main components
 - Node
 - Worker
 
+Some utility functions are provided to build pipelines, ```LinealPipeline(n ... Node)*Pipeliner``` chain all nodes in same order as their are passed. ```FreePipeline(n ...Node)*Pipeliner``` Just runs all nodes without chain them so you can build any pipeline, including ciclic graphs or aciclic graphs
+
 ### Pipeline
 
 Start data processing and manage all chained nodes in a single object
