@@ -39,6 +39,9 @@ func ATProcessCancel(w selina.Worker) error {
 	select {
 	case err := <-errC:
 		if err != context.Canceled {
+			if err == nil {
+				return ErrProcessIgnoreCtx
+			}
 			return err
 		}
 		return nil

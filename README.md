@@ -12,6 +12,7 @@ Unstable API, please use go modules
 - [selina](#selina)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Builtin workers](#builtin-workers)
   - [Design](#design)
     - [Pipeline](#pipeline)
     - [Node](#node)
@@ -59,6 +60,23 @@ func main() {
     }
 }
 ```
+
+## Builtin workers
+
+By default selina has this workers implemented
+
+- csv.Encoder : Transform data from json to csv
+- csv.Decoder : Transform csv data into json
+- custom.Function : Allow to execute custom functions into a pipeline node
+- ops.Cron : Allow scheduled messages into a pipeline
+- random.Random : Generate random byte slices
+- regex.Filter : Filter data using a regular expresion
+- remote.Server : Listen for remote data
+- remote.Client : Send data to a remote pipeline
+- sql.Reader : Execute a query against a database and return its rows as json objects
+- sql.Writer : Insert rows into a table from json objects
+- text.Reader : Use any io.Reader and read its contents as text
+- text.Writer : Write text data into any io.Writer
 
 ## Design
 
