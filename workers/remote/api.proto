@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package remote;
+
+message Error{
+  string message=1;
+}
+
+message Message {
+  bytes data = 1;
+}
+
+service Worker {
+  rpc Send(Message) returns (Error);
+}
