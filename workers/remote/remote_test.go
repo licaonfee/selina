@@ -13,6 +13,7 @@ import (
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/remote"
 	"github.com/licaonfee/selina/workers/text"
+	"golang.org/x/sync/errgroup"
 )
 
 const messageLength = 16
@@ -35,6 +36,7 @@ func consumer(w io.Writer) selina.Pipeliner {
 }
 
 func TestRemote(t *testing.T) {
+	const pauseDuration = time.Millisecond * 250
 	tests := []struct {
 		name string
 		data string
@@ -56,13 +58,23 @@ func TestRemote(t *testing.T) {
 			var recv bytes.Buffer
 			p := producer(tt.data)
 			c := consumer(&recv)
-			ctx, cancel := context.WithCancel(context.Background())
-			go c.Run(ctx)
-			time.Sleep(time.Second)
-			go p.Run(ctx)
-			time.Sleep(time.Second)
-			cancel()
-			time.Sleep(time.Second)
+			ctxParent, cancel := context.WithCancel(context.Background())
+			eg, ctx := errgroup.WithContext(ctxParent)
+			eg.Go(func() error {
+				return c.Run(ctx)
+			})
+			time.Sleep(pauseDuration)
+			eg.Go(func() error {
+				return p.Run(ctx)
+			})
+			time.Sleep(pauseDuration)
+			eg.Go(func() error {
+				cancel()
+				return nil
+			})
+			if err := eg.Wait(); err != nil && err != context.Canceled {
+				t.Errorf("unexpected error = %v", err)
+			}
 			got := recv.String()
 			if tt.data != got {
 				t.Errorf("Data transfer failed: got = '%v' , want = '%v'", got, tt.data)
