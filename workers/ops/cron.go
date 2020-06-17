@@ -10,13 +10,22 @@ import (
 
 var _ selina.Worker = (*Cron)(nil)
 
-//CronOptions
+const cronDefaultOptions = cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor
+
+//CronOptions customize cron behaviour
 type CronOptions struct {
 	//Spec use same format as github.com/robfig/cron/v3
 	//Second Minute Hour DayOfMonth Month DayOfWeek
 	Spec string
 	//Which message will be sent every schedule
 	Message []byte
+}
+
+//Check if a combination of options is valid
+func (o CronOptions) Check() error {
+	p := cron.NewParser(cronDefaultOptions)
+	_, err := p.Parse(o.Spec)
+	return err
 }
 
 //Cron send an specifi message at scheduled intervals
@@ -28,17 +37,22 @@ var globalCron *cron.Cron
 var initCron sync.Once
 
 func createCron() {
-	globalCron = cron.New(cron.WithSeconds())
+	p := cron.NewParser(cronDefaultOptions)
+	globalCron = cron.New(cron.WithParser(p))
 	globalCron.Start()
 }
 
 //Process add a job scec, any message received will be discarded
 // when input is closed this worker return nil
 func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
+	defer close(args.Output)
+	if err := c.opts.Check(); err != nil {
+		return err
+	}
 	initCron.Do(createCron)
 	tick := make(chan struct{})
 	bye := make(chan struct{})
-	id, err := globalCron.AddFunc(c.opts.Spec, func() {
+	id, _ := globalCron.AddFunc(c.opts.Spec, func() {
 		select {
 		case tick <- struct{}{}:
 		case <-bye:
@@ -47,11 +61,7 @@ func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer func() {
 		globalCron.Remove(id)
 		close(bye)
-		close(args.Output)
 	}()
-	if err != nil {
-		return err
-	}
 	for {
 		select {
 		case _, ok := <-args.Input:

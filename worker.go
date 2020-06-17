@@ -27,3 +27,10 @@ type ProcessArgs struct {
 	Output chan<- []byte
 	Err    chan error
 }
+
+type WrokerOptions interface {
+	//Check return an error if options has an invalid value
+	//it must not modify values at all and by preference should be
+	//implemented as a value receiver
+	Check() error
+}
