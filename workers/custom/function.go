@@ -20,6 +20,14 @@ type FunctionOptions struct {
 	Func UserFunction
 }
 
+//Check if a combination of options is valid
+func (o FunctionOptions) Check() error {
+	if o.Func == nil {
+		return ErrNilFunction
+	}
+	return nil
+}
+
 //Function allow users to create custom Workers just with a function
 type Function struct {
 	opts FunctionOptions
@@ -31,8 +39,8 @@ var ErrNilFunction = errors.New("nil UserFunction passed to Worker")
 //Process implements selina.Workers
 func (f *Function) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
-	if f.opts.Func == nil {
-		return ErrNilFunction
+	if err := f.opts.Check(); err != nil {
+		return err
 	}
 	for {
 		select {

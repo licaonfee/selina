@@ -74,6 +74,12 @@ func TestSQLReader_Process(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "Empty Query",
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "empty_query", Query: ""},
+			want:    []string{},
+			wantErr: true,
+		},
+		{
 			name:    "Invalid Query",
 			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;"},
 			want:    []string{},

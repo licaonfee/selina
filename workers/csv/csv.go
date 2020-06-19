@@ -22,6 +22,7 @@ type EncoderOptions struct {
 	//UseCRLF use \r\n instead of \n
 	UseCRLF bool
 }
+
 type Encoder struct {
 	opts EncoderOptions
 }

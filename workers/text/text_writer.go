@@ -21,6 +21,14 @@ type WriterOptions struct {
 	SkipNewLine bool
 }
 
+//Check if a combination of options is valid
+func (o WriterOptions) Check() error {
+	if o.Writer == nil {
+		return ErrNilWriter
+	}
+	return nil
+}
+
 //Writer a Worker that write data to a given io.Writer in text format
 type Writer struct {
 	opts WriterOptions
@@ -48,8 +56,8 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			err = cerr
 		}
 	}()
-	if t.opts.Writer == nil {
-		return ErrNilWriter
+	if err := t.opts.Check(); err != nil {
+		return err
 	}
 	w := bufio.NewWriter(t.opts.Writer)
 	defer func() {

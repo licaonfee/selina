@@ -24,6 +24,24 @@ type WriterOptions struct {
 	Builder QueryBuilder
 }
 
+//Check if a combination of options is valid
+//this not guarantees that worker will not fail
+func (o WriterOptions) Check() error {
+	var driverOk bool
+	for _, d := range sql.Drivers() {
+		if d == o.Driver {
+			driverOk = true
+		}
+	}
+	if !driverOk {
+		return fmt.Errorf("missing driver '%s'", o.Driver)
+	}
+	if o.Table == "" {
+		return fmt.Errorf("invalid table name \"%s\"", o.Table)
+	}
+	return nil
+}
+
 //Writer a Worker that insert data into database
 type Writer struct {
 	opts WriterOptions
@@ -32,12 +50,12 @@ type Writer struct {
 //Process implements Worker interface
 func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
+	if err := s.opts.Check(); err != nil {
+		return err
+	}
 	conn, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
 		return err
-	}
-	if s.opts.Table == "" {
-		return fmt.Errorf("invalid table name \"%s\"", s.opts.Table)
 	}
 	for {
 		select {

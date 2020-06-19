@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	"github.com/licaonfee/selina"
 )
@@ -21,6 +22,27 @@ type ReaderOptions struct {
 	Query string
 }
 
+//Check if a combination of options is valid
+//this not guarantees that worker will not fail
+func (o ReaderOptions) Check() error {
+	var driverOK bool
+	for _, d := range sql.Drivers() {
+		if d == o.Driver {
+			driverOK = true
+		}
+	}
+	if !driverOK {
+		return fmt.Errorf("missing driver '%s'", o.Driver)
+	}
+	//validate if a query is valid or not require
+	//implements any posible dialect so we just check
+	//only if there is a query
+	if o.Query == "" {
+		return fmt.Errorf("empty query")
+	}
+	return nil
+}
+
 //Reader a Worker that execute a given Query and export data via output channel
 type Reader struct {
 	opts ReaderOptions
@@ -29,6 +51,9 @@ type Reader struct {
 //Process implements Worker interface
 func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer close(args.Output)
+	if err := s.opts.Check(); err != nil {
+		return err
+	}
 	db, err := sql.Open(s.opts.Driver, s.opts.ConnStr)
 	if err != nil {
 		return err

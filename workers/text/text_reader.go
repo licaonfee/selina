@@ -20,6 +20,14 @@ type ReaderOptions struct {
 	AutoClose bool
 }
 
+//Check if a combination of options is valid
+func (o ReaderOptions) Check() error {
+	if o.Reader == nil {
+		return ErrNilReader
+	}
+	return nil
+}
+
 //Reader a worker that read data from an io.Reader
 type Reader struct {
 	opts ReaderOptions
@@ -47,8 +55,8 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			err = cerr
 		}
 	}()
-	if t.opts.Reader == nil {
-		return ErrNilReader
+	if err := t.opts.Check(); err != nil {
+		return err
 	}
 	sc := bufio.NewScanner(t.opts.Reader)
 	for sc.Scan() {

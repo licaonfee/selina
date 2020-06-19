@@ -15,6 +15,12 @@ type FilterOptions struct {
 	Pattern string
 }
 
+//Check if a combination of options is valid
+func (o FilterOptions) Check() error {
+	_, err := regexp.Compile(o.Pattern)
+	return err
+}
+
 //Filter Worker read []byte from input channel, apply regular expresion
 // if []byte match against Pattern , []byte is sent to output
 type Filter struct {
@@ -23,10 +29,10 @@ type Filter struct {
 
 //Process implements Worker interface
 func (r *Filter) Process(ctx context.Context, args selina.ProcessArgs) error {
-	re, err := regexp.Compile(r.opts.Pattern)
-	if err != nil {
+	if err := r.opts.Check(); err != nil {
 		return err
 	}
+	re, _ := regexp.Compile(r.opts.Pattern)
 	defer func() {
 		close(args.Output)
 	}()
