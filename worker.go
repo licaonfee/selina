@@ -28,7 +28,7 @@ type ProcessArgs struct {
 	Err    chan error
 }
 
-type WrokerOptions interface {
+type OptionsChecker interface {
 	//Check return an error if options has an invalid value
 	//it must not modify values at all and by preference should be
 	//implemented as a value receiver
