@@ -1,7 +1,10 @@
 package text_test
 
 import (
+	"bufio"
 	"context"
+	"errors"
+	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -13,29 +16,62 @@ import (
 )
 
 func TestReaderProcess(t *testing.T) {
-	fileContents := []string{
-		"Lorem ipsum dolor sit amet",
-		"consectetur adipiscing elit",
-		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
+	tests := []struct {
+		name    string
+		data    []string
+		split   bufio.SplitFunc
+		want    []string
+		wantErr error
+	}{
+		{
+			name: "Success",
+			data: []string{
+				"Lorem ipsum dolor sit amet\n",
+				"consectetur adipiscing elit\n",
+				"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"},
+			split: nil,
+			want: []string{"Lorem ipsum dolor sit amet",
+				"consectetur adipiscing elit",
+				"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"},
+			wantErr: nil,
+		},
+		{
+			name: "Success Split Words",
+			data: []string{"Im a multiline text\n",
+				"newlines must be ignored\n\n\n"},
+			split: bufio.ScanWords,
+			want: []string{"Im", "a", "multiline", "text",
+				"newlines", "must", "be", "ignored"},
+			wantErr: nil,
+		},
+		{
+			name:    "nil io.Reader",
+			data:    nil,
+			split:   nil,
+			want:    []string{},
+			wantErr: text.ErrNilReader,
+		},
 	}
-	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	opts := text.ReaderOptions{Reader: rd}
-	tr := text.NewReader(opts)
-	input := make(chan []byte)
-	output := make(chan []byte, len(fileContents))
-	args := selina.ProcessArgs{Input: input, Output: output}
-	if err := tr.Process(context.Background(), args); err != nil {
-		t.Fatalf("Process() err = %v", err)
-	}
-	got := []string{}
-	for line := range output {
-		got = append(got, string(line))
-		if len(got) == len(fileContents) {
-			break
-		}
-	}
-	if !reflect.DeepEqual(got, fileContents) {
-		t.Fatalf("Process() got = %v, want = %v", got, fileContents)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var r io.Reader
+			if tt.data != nil {
+				r = strings.NewReader(strings.Join(tt.data, ""))
+			}
+			opts := text.ReaderOptions{Reader: r, SplitFunc: tt.split}
+			w := text.NewReader(opts)
+			input := make(chan []byte)
+			output := make(chan []byte, len(tt.want))
+			args := selina.ProcessArgs{Input: input, Output: output}
+			err := w.Process(context.Background(), args)
+			if err != tt.wantErr && !errors.As(err, &tt.wantErr) {
+				t.Errorf("Process() err = %v , want = %v ", err, tt.wantErr)
+			}
+			got := selina.ChannelAsSlice(output)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Process() got = %v , want % v", got, tt.want)
+			}
+		})
 	}
 }
 
