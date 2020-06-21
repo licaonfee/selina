@@ -11,6 +11,11 @@ import (
 
 var _ selina.Worker = (*Reader)(nil)
 
+//ErrNilReader is returned when a nil io.Reader interface is provided
+var (
+	ErrNilReader = errors.New("nil io.Reader provided to TextReader")
+)
+
 //ReaderOptions customize Reader
 type ReaderOptions struct {
 	//Reader from which data is readed
@@ -18,6 +23,8 @@ type ReaderOptions struct {
 	//AutoClose if its true and Reader implements io.Closer
 	//io.Reader.Close() method is called on Process finish
 	AutoClose bool
+	//Default is ScanLines
+	SplitFunc bufio.SplitFunc
 }
 
 //Check if a combination of options is valid
@@ -43,9 +50,6 @@ func (t *Reader) cleanup() error {
 	return nil
 }
 
-//ErrNilReader is returned when a nil io.Reader interface is provided
-var ErrNilReader = errors.New("nil io.Reader provided to TextReader")
-
 //Process implements Worker interface
 func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
@@ -59,6 +63,9 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		return err
 	}
 	sc := bufio.NewScanner(t.opts.Reader)
+	if t.opts.SplitFunc != nil {
+		sc.Split(t.opts.SplitFunc)
+	}
 	for sc.Scan() {
 		select {
 		case _, ok := <-args.Input:
