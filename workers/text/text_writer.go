@@ -19,6 +19,7 @@ type WriterOptions struct {
 	// io.Closer.Close() method will be called on finalization
 	AutoClose   bool
 	SkipNewLine bool
+	BufferSize  int
 }
 
 //Check if a combination of options is valid
@@ -59,7 +60,7 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	if err := t.opts.Check(); err != nil {
 		return err
 	}
-	w := bufio.NewWriter(t.opts.Writer)
+	w := bufio.NewWriterSize(t.opts.Writer, t.opts.BufferSize)
 	defer func() {
 		if errFlush := w.Flush(); errFlush != nil {
 			err = errFlush
