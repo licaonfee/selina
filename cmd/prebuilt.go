@@ -8,29 +8,38 @@ import (
 
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/csv"
+	"github.com/licaonfee/selina/workers/ops"
 	"github.com/licaonfee/selina/workers/regex"
 	"github.com/licaonfee/selina/workers/sql"
 	"github.com/licaonfee/selina/workers/text"
 )
 
+//GeneralOptions will not use jsonschema automatically because Type is determined in excution time
 type GeneralOptions struct {
-	Name string                 `yaml:"name"`
-	Type string                 `yaml:"type"`
-	Args map[string]interface{} `yaml:"args"`
+	Name  string                 `yaml:"name"`
+	Type  string                 `yaml:"type"`
+	Args  map[string]interface{} `yaml:"args"`
+	Fetch []string               `yaml:"fetch"`
 }
 
 type NodeFacility interface {
 	//Make create a selina.Worker, and wraps it in a selina.Node
-	//is mandatory that empty values give a default behavior
 	Make(name string) (*selina.Node, error)
 }
 
-var _ NodeFacility = (*ReadFile)(nil)
+const (
+	splitLine     = "line"
+	splitByte     = "byte"
+	splitChar     = "char"
+	fileOverwrite = "overwrite"
+	fileAppend    = "append"
+	fileFail      = "fail"
+)
 
 //ReadFile read data from a text file
 type ReadFile struct {
-	Filename  string `yaml:"filename",mapstructure:"filename"`
-	SplitMode string `yaml:"split",mapstructure:"split"`
+	Filename  string `mapstructure:"filename" json:"filename" jsonschema:"minLength=1"`
+	SplitMode string `mapstructure:"split" default:"line" json:"split,omitempty" jsonschema:"enum=line,enum=byte,enum=char"`
 }
 
 func (r *ReadFile) Make(name string) (*selina.Node, error) {
@@ -40,11 +49,11 @@ func (r *ReadFile) Make(name string) (*selina.Node, error) {
 	}
 	var split bufio.SplitFunc
 	switch strings.ToLower(r.SplitMode) {
-	case "line", "":
+	case splitLine:
 		split = bufio.ScanLines
-	case "byte":
+	case splitByte:
 		split = bufio.ScanBytes
-	case "char":
+	case splitChar:
 		split = bufio.ScanRunes
 	default:
 		return nil, errors.New("invalid splitmode")
@@ -59,28 +68,32 @@ func (r *ReadFile) Make(name string) (*selina.Node, error) {
 var _ (NodeFacility) = (*WriteFile)(nil)
 
 type WriteFile struct {
-	Filename string      `yaml:"filename",mapstructure:"filename"`
-	IfExists string      `yaml:"ifexists","mapstructure:"ifexists"`
-	Mode     os.FileMode `yaml:"mode",mapstructure:"mode"`
+	Filename   string      `mapstructure:"filename" json:"filename" jsonschema:"minLength=1"`
+	IfExists   string      `mapstructure:"ifexists" json:"ifexists" default:"fail" json:"ifexists,omitempty" jsonschema:"enum=fail,enum=overwrite,enum=append"`
+	Mode       os.FileMode `mapstructure:"mode" default:"420" json:"mode,omitempty"` //0644
+	BufferSize int         `mapstructure:"buffer" json:"buffer,omitempty" jsonschema_extras:"minimum=0"`
 }
 
 func (w *WriteFile) Make(name string) (*selina.Node, error) {
 	flags := os.O_WRONLY | os.O_CREATE
-	switch w.IfExists {
-	case "append":
+	switch strings.ToLower(w.IfExists) {
+	case fileAppend:
 		flags |= os.O_APPEND
-	case "overwrite":
+	case fileOverwrite:
 		flags |= os.O_TRUNC
-	case "fail", "":
+	case fileFail:
 		flags |= os.O_EXCL
 	default:
 		return nil, errors.New("invalid value")
+	}
+	if w.Mode == 0 {
+		w.Mode = 0600
 	}
 	f, err := os.OpenFile(w.Filename, flags, w.Mode)
 	if err != nil {
 		return nil, err
 	}
-	opts := text.WriterOptions{Writer: f, AutoClose: true}
+	opts := text.WriterOptions{Writer: f, AutoClose: true, BufferSize: w.BufferSize}
 	if err := opts.Check(); err != nil {
 		return nil, err
 	}
@@ -90,9 +103,9 @@ func (w *WriteFile) Make(name string) (*selina.Node, error) {
 var _ (NodeFacility) = (*SQLQuery)(nil)
 
 type SQLQuery struct {
-	Driver string `yaml:"driver"`
-	DSN    string `yaml:"dsn"`
-	Query  string `yaml:"query"`
+	Driver string `mapstructure:"driver" json:"driver" jsonschema:"enum=mysql,enum=postgres,enum=clickhouse"`
+	DSN    string `mapstructure:"dsn" json:"dsn" jsonschema:"minLength=1"`
+	Query  string `mapstrcuture:"query" json:"query" jsonschema:"minLength=1"`
 }
 
 func (s *SQLQuery) Make(name string) (*selina.Node, error) {
@@ -108,7 +121,7 @@ func (s *SQLQuery) Make(name string) (*selina.Node, error) {
 var _ NodeFacility = (*Regexp)(nil)
 
 type Regexp struct {
-	Pattern string `yaml:"pattern",mapstructure:"pattern"`
+	Pattern string `mapstructure:"pattern" json:"pattern" jsonschema:"minLegth=1"`
 }
 
 func (r *Regexp) Make(name string) (*selina.Node, error) {
@@ -122,11 +135,11 @@ func (r *Regexp) Make(name string) (*selina.Node, error) {
 var _ (NodeFacility) = (*CSV)(nil)
 
 type CSV struct {
-	Mode    string   `yaml:"mode",mapstructure:"mode"`
-	Header  []string `yaml:"header", mapstructure:header"`
-	Comma   rune     `yaml:"comma",mapstructure:"comma"`
-	UseCrlf bool     `yaml:"crlf",mapstructure:"crlf"`
-	Comment rune     `yaml:"comment",mapstructure:"comment"`
+	Mode    string   `mapstructure:"mode" json:"mode" jsonschema:"enum=decode,enum=encode"`
+	Header  []string `mapstructure:"header" json:"header,omitempty"`
+	Comma   rune     `mapstructure:"comma" json:"comma,omitempty" jsonschema:"minLegth=1,maxLength=1"`
+	UseCrlf bool     `mapstructure:"crlf" json:"crlf,omitempty" jsonschema:"minLegth=1,maxLength=1"`
+	Comment rune     `mapstructure:"comment" json:"comment,omitempty" jsonschema:"minLegth=1,maxLength=1"`
 }
 
 func (c *CSV) Make(name string) (*selina.Node, error) {
@@ -142,4 +155,19 @@ func (c *CSV) Make(name string) (*selina.Node, error) {
 		return nil, errors.New("CSV mode must be decode|encode")
 	}
 	return selina.NewNode(name, w), nil
+}
+
+var _ NodeFacility = (*Cron)(nil)
+
+type Cron struct {
+	Spec    string `mapstructure:"spec" json:"spec" jsonschema:"example=* * * * * *,example=@every 1h"`
+	Message string `mapstructures:"message" json:"message,omitempty"`
+}
+
+func (c *Cron) Make(name string) (*selina.Node, error) {
+	opts := ops.CronOptions{Spec: c.Spec, Message: []byte(c.Message)}
+	if err := opts.Check(); err != nil {
+		return nil, err
+	}
+	return selina.NewNode(name, ops.NewCron(opts)), nil
 }

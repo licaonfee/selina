@@ -17,6 +17,7 @@ Unstable API, please use go modules
     - [Pipeline](#pipeline)
     - [Node](#node)
     - [Worker](#worker)
+  - [Commandline Usage](#commandline-usage)
 
 ## Installation
 
@@ -99,3 +100,39 @@ Contains methods to pass data from Worker to Worker and get metrics
 ### Worker
 
 All data Extraction/Transformation/Load logic is encapsulated in a Worker instance
+
+## Commandline Usage
+
+```bash
+selina -file pipeline.yml -timeout 10h
+```
+
+Where pipeline.yml is
+
+```yaml
+---
+nodes:
+  - name: employes
+    type: read_file
+    args:
+      filename: sample/employes.csv
+  - name: filter_it
+    type: regex
+    args:
+      pattern: '^.*,it,.*$'
+  - name: to_json
+    type: csv
+    args:
+      mode: decode
+      header: [name,role,department,id]    
+  - name: it_employes
+    type: write_file
+    args:
+      filename: it_employes.txt
+      ifexists: overwrite
+      mode: 0777
+layout: employes
+  .Chain(filter_it)
+  .Chain(to_json)
+  .Chain(it_employes)
+```

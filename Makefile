@@ -15,4 +15,9 @@ cover:
 		$(GOTOOL) cover -func=coverage.out 
 
 clean:
-		rm coverage.out
+		rm -f ./coverage.out
+		rm -rf ./bin
+
+build:
+		mkdir -p bin
+		CGO_ENABLED=0 $(GOBUILD) -o bin/selina cmd/*.go 

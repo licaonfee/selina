@@ -1,11 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"flag"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
-	"strings"
+	"os"
+	"os/signal"
+	"time"
 
-	"github.com/antonmedv/expr"
+	"github.com/creasty/defaults"
 	"github.com/licaonfee/selina"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v2"
@@ -17,121 +25,134 @@ var availableNodes = map[string]func() NodeFacility{
 	"sql_query":  func() NodeFacility { return &SQLQuery{} },
 	"regex":      func() NodeFacility { return &Regexp{} },
 	"csv":        func() NodeFacility { return &CSV{} },
+	"cron":       func() NodeFacility { return &Cron{} },
 }
 
 type PipeDefinition struct {
-	Nodes  []GeneralOptions `yaml:"nodes"`
-	Layout []string
+	NodeDefs []GeneralOptions `yaml:"nodes"`
+	nodes    []*selina.Node   `yaml:"-"`
 }
 
-const sampleDefinition = `
-#employes.csv
-#name,role,department,id
-#jhon,student,it,1
-#josh,manager,sales,2
----
-nodes:
-  - name: employes
-    type: read_file
-    args:
-      filename: employes.csv
-  - name: filter_it
-    type: regex
-    args:
-      pattern: '^.*,it,.*$'
-  - name: to_json
-    type: csv
-    args:
-      mode: decode
-      header: [name,role,department,id]    
-  - name: it_employes
-    type: write_file
-    args:
-      filename: it_employes.txt
-      ifexists: append
-      mode: 0777
-#Absent or empty layout assumes lineal layout
-#all nodes will be chained in same order as declared
-#another way is chaining nodes manually using A.Chain(B)
-#layout mut be a single or multiple singleline expresions
-#example:
-#layout:
-#  - A.Chain(B)
-#  - B.Chain(C)
-#  - C.Chain(D)
-layout:
-  - employes.Chain(filter_it)
-  - filter_it.Chain(to_json)
-  - to_json.Chain(it_employes)
-`
-
-//Chainer is just to hide full selina.Node signature
-type Chainer struct {
-	n *selina.Node
-}
-
-func (c Chainer) Chain(next Chainer) Chainer {
-	c.n.Chain(next.n)
-	return next
-}
-func layout(layout []string, nodes []*selina.Node) selina.Pipeliner {
-	env := make(map[string]Chainer)
-	for _, n := range nodes {
-		env[n.Name()] = Chainer{n: n}
-	}
-	vmEnv := expr.Env(env)
-	for _, l := range layout {
-		prog, err := expr.Compile(l, vmEnv)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = expr.Run(prog, env)
-		if err != nil {
-			log.Fatal(err)
+func layout(def *PipeDefinition) (selina.Pipeliner, error) {
+	nodes := make(map[string]*selina.Node, len(def.nodes))
+	var usefetch bool
+	for i := 0; i < len(def.nodes); i++ {
+		nodes[def.nodes[i].Name()] = def.nodes[i]
+		if len(def.NodeDefs[i].Fetch) > 0 {
+			usefetch = true
 		}
 	}
-	for _, v := range env {
-		v.n = nil
+	if !usefetch {
+		return selina.LinealPipeline(def.nodes...), nil
 	}
-	return selina.FreePipeline(nodes...)
+	chained := make(map[string]struct{})
+	for _, d := range def.NodeDefs {
+		me := nodes[d.Name]
+		for _, f := range d.Fetch {
+			prev, ok := nodes[f]
+			if !ok {
+				return nil, errors.New("missing node")
+			}
+			prev.Chain(me)
+			chained[me.Name()] = struct{}{}
+			chained[prev.Name()] = struct{}{}
+		}
+	}
+	for _, d := range def.NodeDefs {
+		_, ok := chained[d.Name]
+		if !ok {
+			return nil, errors.New("not chained")
+		}
+	}
+
+	return selina.FreePipeline(def.nodes...), nil
 }
 
-func loadPipeline(definition string) {
-	dec := yaml.NewDecoder(strings.NewReader(definition))
+func loadDefinition(definition io.Reader) (*PipeDefinition, error) {
+	dec := yaml.NewDecoder(definition)
 	dec.SetStrict(true)
 	var defined PipeDefinition
 	if err := dec.Decode(&defined); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	pipeNodes := make([]*selina.Node, 0, len(defined.Nodes))
-	for _, n := range defined.Nodes {
+
+	pipeNodes := make([]*selina.Node, 0, len(defined.NodeDefs))
+	for _, n := range defined.NodeDefs {
 		facFunc, ok := availableNodes[n.Type]
 		if !ok {
-			log.Fatal("unavaliable type")
+			return nil, errors.New("unavaliable type")
 		}
 		facility := facFunc()
+		if err := defaults.Set(facility); err != nil {
+			return nil, err
+		}
 		if err := mapstructure.Decode(n.Args, &facility); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		node, err := facility.Make(n.Name)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		pipeNodes = append(pipeNodes, node)
 	}
-	var p selina.Pipeliner
+	defined.nodes = pipeNodes
+	return &defined, nil
+}
 
-	if len(defined.Layout) == 0 {
-		p = selina.LinealPipeline(pipeNodes...)
-	} else {
-		p = layout(defined.Layout, pipeNodes)
+func createPipeline(defined *PipeDefinition) (selina.Pipeliner, error) {
+	p, err := layout(defined)
+	if err != nil {
+		return nil, err
 	}
-	if err := p.Run(context.Background()); err != nil {
-		log.Fatal(err)
-	}
+	return p, nil
 }
 
 func main() {
+	filename := flag.String("file", "", "pipeline definition file")
+	timeout := flag.Duration("timeout", time.Duration(0), "maximum time to run, default limitless")
+	printSchema := flag.Bool("schema", false, "print jsonschema for yaml LSP")
+	flag.Parse()
 
-	loadPipeline(sampleDefinition)
+	if *printSchema {
+		fmt.Println(schema())
+		return
+	}
+
+	if *filename == "" {
+		log.Fatal("file is mandatory")
+	}
+
+	data, err := ioutil.ReadFile(*filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	def, err := loadDefinition(bytes.NewBuffer(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+	p, err := createPipeline(def)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := make(chan os.Signal, 1)
+	signal.Notify(s, os.Interrupt, os.Kill)
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if *timeout == time.Duration(0) {
+		ctx, cancel = context.WithCancel(context.Background())
+	} else {
+		ctx, cancel = context.WithTimeout(context.Background(), *timeout)
+	}
+	go func() {
+		<-s
+		cancel()
+	}()
+	if err := p.Run(ctx); err != nil {
+		switch {
+		case errors.Is(err, context.DeadlineExceeded):
+			log.Fatalf("timeout after %v", *timeout)
+		}
+		log.Fatal(err)
+	}
 }
