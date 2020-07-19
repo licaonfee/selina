@@ -13,19 +13,19 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/creasty/defaults"
 	"github.com/licaonfee/selina"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v2"
 )
 
-var availableNodes = map[string]func() NodeFacility{
-	"read_file":  func() NodeFacility { return &ReadFile{} },
-	"write_file": func() NodeFacility { return &WriteFile{} },
-	"sql_query":  func() NodeFacility { return &SQLQuery{} },
-	"regex":      func() NodeFacility { return &Regexp{} },
-	"csv":        func() NodeFacility { return &CSV{} },
-	"cron":       func() NodeFacility { return &Cron{} },
+var availableNodes = map[string]NewFacility{
+	"read_file":  NewReadFile,
+	"write_file": NewWriteFile,
+	"sql_query":  NewSQLQuery,
+	"sql_insert": NewSQLInsert,
+	"regex":      NewRegexp,
+	"csv":        NewCSV,
+	"cron":       NewCron,
 }
 
 type PipeDefinition struct {
@@ -83,9 +83,6 @@ func loadDefinition(definition io.Reader) (*PipeDefinition, error) {
 			return nil, errors.New("unavaliable type")
 		}
 		facility := facFunc()
-		if err := defaults.Set(facility); err != nil {
-			return nil, err
-		}
 		if err := mapstructure.Decode(n.Args, &facility); err != nil {
 			return nil, err
 		}

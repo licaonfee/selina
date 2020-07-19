@@ -5,7 +5,6 @@ go 1.14
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.1
 	github.com/alecthomas/jsonschema v0.0.0-20200530073317-71f438968921
-	github.com/creasty/defaults v1.4.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.2

@@ -1,0 +1,360 @@
+{
+   "$schema": "http://json-schema.org/draft-04/schema#",
+   "definitions": {
+      "cron": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "spec"
+         ],
+         "properties": {
+            "spec": {
+               "type": "string",
+               "examples": [
+                  "* * * * * *",
+                  "@every 1h"
+               ]
+            },
+            "message": {
+               "type": "string"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      },
+      "csv": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "mode"
+         ],
+         "properties": {
+            "mode": {
+               "enum": [
+                  "decode",
+                  "encode"
+               ],
+               "type": "string"
+            },
+            "header": {
+               "items": {
+                  "type": "string"
+               },
+               "type": "array"
+            },
+            "comma": {
+               "type": "integer"
+            },
+            "crlf": {
+               "type": "boolean"
+            },
+            "comment": {
+               "type": "integer"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      },
+      "read_file": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "filename"
+         ],
+         "properties": {
+            "filename": {
+               "minLength": 1,
+               "type": "string"
+            },
+            "split": {
+               "enum": [
+                  "line",
+                  "byte",
+                  "char"
+               ],
+               "type": "string"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      },
+      "regex": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "pattern"
+         ],
+         "properties": {
+            "pattern": {
+               "type": "string"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      },
+      "sql_insert": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "driver",
+            "dsn",
+            "table"
+         ],
+         "properties": {
+            "driver": {
+               "enum": [
+                  "mysql",
+                  "postgres",
+                  "clickhouse"
+               ],
+               "type": "string"
+            },
+            "dsn": {
+               "minLength": 1,
+               "type": "string"
+            },
+            "table": {
+               "minLength": 1,
+               "type": "string"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      },
+      "sql_query": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "driver",
+            "dsn",
+            "query"
+         ],
+         "properties": {
+            "driver": {
+               "enum": [
+                  "mysql",
+                  "postgres",
+                  "clickhouse"
+               ],
+               "type": "string"
+            },
+            "dsn": {
+               "minLength": 1,
+               "type": "string"
+            },
+            "query": {
+               "minLength": 1,
+               "type": "string"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      },
+      "write_file": {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "required": [
+            "filename",
+            "ifexists"
+         ],
+         "properties": {
+            "filename": {
+               "minLength": 1,
+               "type": "string"
+            },
+            "ifexists": {
+               "enum": [
+                  "fail",
+                  "overwrite",
+                  "append"
+               ],
+               "type": "string"
+            },
+            "mode": {
+               "type": "integer"
+            },
+            "buffer": {
+               "type": "integer",
+               "minimum": "0"
+            }
+         },
+         "additionalProperties": false,
+         "type": "object"
+      }
+   },
+   "properties": {
+      "nodes": {
+         "items": {
+            "allOf": [
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "read_file"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/read_file"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "write_file"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/write_file"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "sql_query"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/sql_query"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "sql_insert"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/sql_insert"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "regex"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/regex"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "csv"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/csv"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               },
+               {
+                  "if": {
+                     "properties": {
+                        "type": {
+                           "const": "cron"
+                        }
+                     }
+                  },
+                  "then": {
+                     "properties": {
+                        "args": {
+                           "allOf": [
+                              {
+                                 "$ref": "#/definitions/cron"
+                              }
+                           ]
+                        }
+                     }
+                  }
+               }
+            ],
+            "properties": {
+               "fetch": {
+                  "items": {
+                     "pattern": "^[a-zA-Z]+[a-zA-Z0-9_]*$",
+                     "type": "string"
+                  },
+                  "type": "array"
+               },
+               "name": {
+                  "pattern": "^[a-zA-Z]+[a-zA-Z0-9_]*$",
+                  "type": "string"
+               },
+               "type": {
+                  "enum": [
+                     "read_file",
+                     "write_file",
+                     "sql_query",
+                     "sql_insert",
+                     "regex",
+                     "csv",
+                     "cron"
+                  ],
+                  "type": "string"
+               }
+            },
+            "type": "object"
+         },
+         "minItems": 1,
+         "required": [
+            "name",
+            "type",
+            "args"
+         ],
+         "type": "array"
+      }
+   },
+   "type": "object"
+}

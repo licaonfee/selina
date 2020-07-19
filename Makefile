@@ -16,8 +16,12 @@ cover:
 
 clean:
 		rm -f ./coverage.out
-		rm -rf ./bin
+		rm -rf ./bin 
+		rm -f schema.json
 
 build:
 		mkdir -p bin
 		CGO_ENABLED=0 $(GOBUILD) -o bin/selina cmd/*.go 
+
+schema:
+	go run cmd/*.go -schema > schema.json
