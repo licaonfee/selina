@@ -119,12 +119,17 @@ func main() {
 		log.Fatal("file is mandatory")
 	}
 
-	data, err := ioutil.ReadFile(*filename)
-	if err != nil {
-		log.Fatal(err)
+	var fileStream io.Reader = os.Stdin
+
+	if *filename != "-" {
+		data, err := ioutil.ReadFile(*filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fileStream = bytes.NewBuffer(data)
 	}
 
-	def, err := loadDefinition(bytes.NewBuffer(data))
+	def, err := loadDefinition(fileStream)
 	if err != nil {
 		log.Fatal(err)
 	}
