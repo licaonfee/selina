@@ -58,23 +58,26 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	if err != nil {
 		return err
 	}
-	for {
-		select {
-		case _, ok := <-args.Input:
-			if !ok {
-				return nil
-			}
-		default:
-			rows, err := db.QueryContext(ctx, s.opts.Query)
-			if err != nil {
-				return err
-			}
-			if err := serializeRows(ctx, rows, args.Output); err != nil {
-				return err
-			}
-			return nil
+
+	var input <-chan []byte
+	if args.Input != nil {
+		input = args.Input
+	} else {
+		in := make(chan []byte, 1)
+		in <- nil
+		close(in)
+		input = in
+	}
+	for range input {
+		rows, err := db.QueryContext(ctx, s.opts.Query)
+		if err != nil {
+			return err
+		}
+		if err := serializeRows(ctx, rows, args.Output); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
 func serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
