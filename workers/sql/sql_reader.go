@@ -19,7 +19,8 @@ type ReaderOptions struct {
 	//ConnStr connection string relative to Driver
 	ConnStr string
 	//Query which SQL select will be executed into database
-	Query string
+	Query       string
+	BlobColumns []string
 }
 
 //Check if a combination of options is valid
@@ -68,16 +69,24 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		close(in)
 		input = in
 	}
-	for range input {
-		rows, err := db.QueryContext(ctx, s.opts.Query)
-		if err != nil {
-			return err
-		}
-		if err := serializeRows(ctx, rows, args.Output); err != nil {
-			return err
+	for {
+		select {
+		case _, ok := <-input:
+			if !ok {
+				return nil
+			}
+			rows, err := db.QueryContext(ctx, s.opts.Query)
+			if err != nil {
+				return err
+			}
+			if err := serializeRows(ctx, rows, args.Output); err != nil {
+				return err
+			}
+
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
-	return nil
 }
 
 func serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
@@ -87,13 +96,17 @@ func serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error
 		return err
 	}
 	obj := make(map[string]interface{})
-	values := make([]interface{}, len(cols))
+	values := make([]string, len(cols))
 	pointers := make([]interface{}, len(cols))
 	for i, k := range cols {
 		obj[k] = values[i]
 		pointers[i] = &values[i]
 	}
+
 	for rows.Next() {
+		if err != nil {
+			panic(err)
+		}
 		if err := rows.Scan(pointers...); err != nil {
 			return err
 		}
