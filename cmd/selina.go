@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/licaonfee/selina"
@@ -105,9 +106,10 @@ func createPipeline(defined *PipeDefinition) (selina.Pipeliner, error) {
 }
 
 func main() {
-	filename := flag.String("file", "", "pipeline definition file")
+	filename := flag.String("file", "", "pipeline definition file use - to stdin ")
 	timeout := flag.Duration("timeout", time.Duration(0), "maximum time to run, default limitless")
 	printSchema := flag.Bool("schema", false, "print jsonschema for yaml LSP")
+
 	flag.Parse()
 
 	if *printSchema {
@@ -138,7 +140,7 @@ func main() {
 		log.Fatal(err)
 	}
 	s := make(chan os.Signal, 1)
-	signal.Notify(s, os.Interrupt, os.Kill)
+	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
 	var ctx context.Context
 	var cancel context.CancelFunc
 	if *timeout == time.Duration(0) {

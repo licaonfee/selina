@@ -120,19 +120,21 @@ nodes:
     type: regex
     args:
       pattern: '^.*,it,.*$'
+    fetch:
+      - employes
   - name: to_json
     type: csv
     args:
       mode: decode
-      header: [name,role,department,id]    
+      header: [name,role,department,id]
+    fetch:
+      - filter_it
   - name: it_employes
     type: write_file
     args:
       filename: it_employes.txt
       ifexists: overwrite
-      mode: 0777
-layout: employes
-  .Chain(filter_it)
-  .Chain(to_json)
-  .Chain(it_employes)
+      mode: 420 #0644
+    fetch:
+      - to_json
 ```

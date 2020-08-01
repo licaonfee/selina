@@ -101,7 +101,7 @@ func NewWriteFile() NodeFacility {
 
 type WriteFile struct {
 	Filename   string      `mapstructure:"filename" json:"filename" jsonschema:"minLength=1"`
-	IfExists   string      `mapstructure:"ifexists" json:"ifexists" json:"ifexists,omitempty" jsonschema:"enum=fail,enum=overwrite,enum=append"`
+	IfExists   string      `mapstructure:"ifexists" json:"ifexists,omitempty" jsonschema:"enum=fail,enum=overwrite,enum=append"`
 	Mode       os.FileMode `mapstructure:"mode" json:"mode,omitempty"` //0644
 	BufferSize int         `mapstructure:"buffer" json:"buffer,omitempty" jsonschema_extras:"minimum=0"`
 }

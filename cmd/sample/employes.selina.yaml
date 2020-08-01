@@ -1,0 +1,13 @@
+---
+nodes:
+  - name: read_employes
+    type: sql_query
+    args:
+      driver: mysql
+      dsn: "user:password@tcp(localhost:3306)/employees?charset=utf8mb4&parseTime=true"
+      query: "select * from employees;"
+  - name: write
+    type: write_file
+    args:
+      filename: employees.ndjson
+      ifexists: overwrite
