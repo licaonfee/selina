@@ -17,7 +17,7 @@ Unstable API, please use go modules
     - [Pipeline](#pipeline)
     - [Node](#node)
     - [Worker](#worker)
-  - [Commandline Usage](#commandline-usage)
+  - [Command line Usage](#command-line-usage)
   - [Autocompletion](#autocompletion)
     - [Get json-shema](#get-json-shema)
     - [VIM](#vim)
@@ -105,7 +105,7 @@ Contains methods to pass data from Worker to Worker and get metrics
 
 All data Extraction/Transformation/Load logic is encapsulated in a Worker instance
 
-## Commandline Usage
+## Command line Usage
 
 Binary
 
