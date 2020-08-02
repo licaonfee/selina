@@ -1,3 +1,4 @@
+#This pipeline read data from a remote pipeline
 ---
 nodes:
   - name: listen

@@ -1,3 +1,4 @@
+#This pipeline definition send data to a remote pipeline
 ---
 nodes:
   - name: read
