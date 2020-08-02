@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/licaonfee/magiccol"
 	"github.com/licaonfee/selina"
 )
 
@@ -20,6 +21,8 @@ type ReaderOptions struct {
 	ConnStr string
 	//Query which SQL select will be executed into database
 	Query string
+	//Mapper allow to configure type Scan, default magiccol.DefaultMapper
+	Mapper magiccol.Mapper
 }
 
 //Check if a combination of options is valid
@@ -58,45 +61,50 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	if err != nil {
 		return err
 	}
+
+	var input <-chan []byte
+	if args.Input != nil {
+		input = args.Input
+	} else {
+		in := make(chan []byte, 1)
+		in <- nil
+		close(in)
+		input = in
+	}
 	for {
 		select {
-		case _, ok := <-args.Input:
+		case _, ok := <-input:
 			if !ok {
 				return nil
 			}
-		default:
 			rows, err := db.QueryContext(ctx, s.opts.Query)
 			if err != nil {
 				return err
 			}
-			if err := serializeRows(ctx, rows, args.Output); err != nil {
+			if err := s.serializeRows(ctx, rows, args.Output); err != nil {
 				return err
 			}
-			return nil
+
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 }
 
-func serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
+func (r *Reader) serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
 	defer rows.Close()
-	cols, err := rows.Columns()
+	obj := make(map[string]interface{})
+	m := r.opts.Mapper
+	if m == nil {
+		m = magiccol.DefaultMapper()
+	}
+	sc, err := magiccol.NewScanner(magiccol.Options{Rows: rows, Mapper: m})
 	if err != nil {
 		return err
 	}
-	obj := make(map[string]interface{})
-	values := make([]interface{}, len(cols))
-	pointers := make([]interface{}, len(cols))
-	for i, k := range cols {
-		obj[k] = values[i]
-		pointers[i] = &values[i]
-	}
-	for rows.Next() {
-		if err := rows.Scan(pointers...); err != nil {
-			return err
-		}
-		for i, v := range values {
-			obj[cols[i]] = v
-		}
+
+	for sc.Scan() {
+		sc.SetMap(obj)
 		msg, err := json.Marshal(obj)
 		if err != nil {
 			return err
@@ -104,6 +112,9 @@ func serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error
 		if err := selina.SendContext(ctx, msg, out); err != nil {
 			return err
 		}
+	}
+	if sc.Err() != nil {
+		return sc.Err()
 	}
 	return nil
 }

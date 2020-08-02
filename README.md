@@ -17,6 +17,11 @@ Unstable API, please use go modules
     - [Pipeline](#pipeline)
     - [Node](#node)
     - [Worker](#worker)
+  - [Commandline Usage](#commandline-usage)
+  - [Autocompletion](#autocompletion)
+    - [Get json-shema](#get-json-shema)
+    - [VIM](#vim)
+    - [VSCode](#vscode)
 
 ## Installation
 
@@ -99,3 +104,89 @@ Contains methods to pass data from Worker to Worker and get metrics
 ### Worker
 
 All data Extraction/Transformation/Load logic is encapsulated in a Worker instance
+
+## Commandline Usage
+
+Binary
+
+```bash
+selina -file pipeline.yml -timeout 10h
+```
+
+Docker
+
+```bash
+#all paths are relatives to /app/selina
+#you can also use absolute paths
+docker run -v$PWD:/data/sample:ro licaonfee/selina:rolling -f /data/pipeline.yml
+```
+
+Where pipeline.yml is
+
+```yaml
+---
+nodes:
+  - name: employes
+    type: read_file
+    args:
+      filename: /data/employes.csv
+  - name: filter_it
+    type: regex
+    args:
+      pattern: '^.*,it,.*$'
+    fetch:
+      - employes
+  - name: to_json
+    type: csv
+    args:
+      mode: decode
+      header: [name,role,department,id]
+    fetch:
+      - filter_it
+  - name: it_employes
+    type: write_file
+    args:
+      filename: it_employes.txt
+      ifexists: overwrite
+      mode: 0644
+    fetch:
+      - to_json
+```
+
+## Autocompletion
+
+Also yun can use any LSP compatible editor with to autocomplete selina pipelines
+
+### Get json-shema
+
+```bash
+selina -schema > /home/user/selina-schema.json
+```
+
+### VIM
+
+- Install [coc-yaml](https://github.com/neoclide/coc-yaml)
+
+In .vim/coc-settings.json
+
+```json
+{
+  "yaml.schemas": {
+  "/home/user/selina-schema.json": "*.selina.yaml"
+  }
+}
+```
+
+### VSCode
+
+- Install `redhat.vscode-yaml` extension
+
+In settings.json
+
+```json
+{
+  "yaml.schemas": {
+  "/home/user/selina-schema.json": "*.selina.yaml"
+  }
+}
+```
