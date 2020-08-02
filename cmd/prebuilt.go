@@ -4,9 +4,13 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
+
+	"github.com/licaonfee/selina/workers/remote"
 
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/csv"
@@ -242,4 +246,41 @@ func (c *Cron) Make(name string) (*selina.Node, error) {
 		return nil, newMakeError(c, err)
 	}
 	return selina.NewNode(name, ops.NewCron(opts)), nil
+}
+
+var _ NodeFacility = (*Remote)(nil)
+
+func NewRemote() NodeFacility {
+	return &Remote{}
+}
+
+type Remote struct {
+	Mode       string `mapstructure:"mode" json:"mode"  jsonschema:"enum=client,enum=server"`
+	Address    string `mapstructure:"address" json:"address"`
+	BufferSize int    `mapstructure:"buffer" json:"buffer,omitempty"`
+}
+
+var allowedSchemes = []string{"tcp", "tcp4", "tcp6", "unix", "unixpacket"}
+
+func (r *Remote) Make(name string) (*selina.Node, error) {
+
+	var w selina.Worker
+	u, err := url.Parse(r.Address)
+	if err != nil {
+		return nil, newMakeError(r, err)
+	}
+	if sort.SearchStrings(allowedSchemes, u.Scheme) < 0 {
+		return nil, newMakeError(r, fmt.Errorf("ivalid scheme name '%s' this should be one of %v", u.Scheme, allowedSchemes))
+	}
+
+	switch r.Mode {
+	case "client":
+		w = remote.NewClient(remote.ClientOptions{Address: r.Address})
+	case "server":
+		w = remote.NewServer(remote.ServerOptions{Network: u.Scheme, Address: u.Host, BufferSize: r.BufferSize})
+	default:
+		return nil, newMakeError(r, errors.New("invalid mode value "+r.Mode))
+	}
+
+	return selina.NewNode(name, w), nil
 }

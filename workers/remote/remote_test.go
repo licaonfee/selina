@@ -16,7 +16,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const messageLength = 16
 const address = "localhost:65000"
 
 func producer(data string) selina.Pipeliner {

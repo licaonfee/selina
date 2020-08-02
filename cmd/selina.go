@@ -27,6 +27,7 @@ var availableNodes = map[string]NewFacility{
 	"regex":      NewRegexp,
 	"csv":        NewCSV,
 	"cron":       NewCron,
+	"remote":     NewRemote,
 }
 
 type PipeDefinition struct {

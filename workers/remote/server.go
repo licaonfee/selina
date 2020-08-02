@@ -66,7 +66,7 @@ func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp err
 
 	gserver := grpc.NewServer()
 	RegisterWorkerServer(gserver, s)
-	//TODO: hanlde Server error
+	//TODO: handle Server error
 	go gserver.Serve(listener)
 	defer gserver.GracefulStop()
 	for {

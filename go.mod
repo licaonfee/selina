@@ -11,7 +11,7 @@ require (
 	github.com/google/gops v0.3.10
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lib/pq v1.7.0
-	github.com/licaonfee/magiccol v0.0.0-20200801213749-fef2bc5c8676
+	github.com/licaonfee/magiccol v0.1.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/oklog/ulid/v2 v2.0.2

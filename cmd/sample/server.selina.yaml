@@ -1,0 +1,17 @@
+---
+nodes:
+  - name: listen
+    type: remote
+    args:
+      mode: server
+      address: tcp://localhost:2777
+  - name: csv
+    type: csv
+    args:
+      mode: encode
+  - name: write
+    type: write_file
+    args:
+      filename: /tmp/somefile.csv
+      ifexists: fail
+      mode: 0644
