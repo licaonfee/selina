@@ -13,7 +13,7 @@ require (
 	github.com/lib/pq v1.7.0
 	github.com/licaonfee/magiccol v0.1.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/mitchellh/mapstructure v1.3.2
+	github.com/mitchellh/mapstructure v1.3.3
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/proullon/ramsql v0.0.0-20181213202341-817cee58a244
