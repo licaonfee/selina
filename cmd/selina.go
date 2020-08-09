@@ -19,17 +19,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var availableNodes = map[string]NewFacility{
-	"read_file":  NewReadFile,
-	"write_file": NewWriteFile,
-	"sql_query":  NewSQLQuery,
-	"sql_insert": NewSQLInsert,
-	"regex":      NewRegexp,
-	"csv":        NewCSV,
-	"cron":       NewCron,
-	"remote":     NewRemote,
-}
-
 type PipeDefinition struct {
 	NodeDefs []GeneralOptions `yaml:"nodes"`
 	nodes    []*selina.Node   `yaml:"-"`
@@ -70,7 +59,7 @@ func layout(def *PipeDefinition) (selina.Pipeliner, error) {
 	return selina.FreePipeline(def.nodes...), nil
 }
 
-func loadDefinition(definition io.Reader) (*PipeDefinition, error) {
+func loadDefinition(definition io.Reader, availableNodes map[string]NewFacility) (*PipeDefinition, error) {
 	dec := yaml.NewDecoder(definition)
 	dec.SetStrict(true)
 	var defined PipeDefinition
@@ -112,9 +101,19 @@ func main() {
 	printSchema := flag.Bool("schema", false, "print jsonschema for yaml LSP")
 
 	flag.Parse()
-
+	var availableNodes = map[string]NewFacility{
+		"read_file":  NewReadFile,
+		"write_file": NewWriteFile,
+		"sql_query":  NewSQLQuery,
+		"sql_insert": NewSQLInsert,
+		"regex":      NewRegexp,
+		"csv":        NewCSV,
+		"cron":       NewCron,
+		"remote":     NewRemote,
+		"random":     NewRandom,
+	}
 	if *printSchema {
-		fmt.Println(schema())
+		fmt.Println(schema(availableNodes))
 		return
 	}
 
@@ -132,7 +131,7 @@ func main() {
 		fileStream = bytes.NewBuffer(data)
 	}
 
-	def, err := loadDefinition(fileStream)
+	def, err := loadDefinition(fileStream, availableNodes)
 	if err != nil {
 		log.Fatal(err)
 	}

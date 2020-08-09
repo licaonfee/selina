@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/licaonfee/selina/workers/random"
 	"github.com/licaonfee/selina/workers/remote"
 
 	"github.com/licaonfee/selina"
@@ -283,4 +284,20 @@ func (r *Remote) Make(name string) (*selina.Node, error) {
 	}
 
 	return selina.NewNode(name, w), nil
+}
+
+var _ NodeFacility = (*Random)(nil)
+
+type Random struct {
+	Len int `mapstructure:"len" json:"len"`
+}
+
+func (r *Random) Make(name string) (*selina.Node, error) {
+	opts := random.Options{Len: r.Len}
+	w := random.NewRandom(opts)
+	return selina.NewNode(name, w), nil
+}
+
+func NewRandom() NodeFacility {
+	return &Random{}
 }

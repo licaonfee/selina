@@ -25,7 +25,7 @@ type nodeIf struct {
 	} `json:"then"`
 }
 
-func schema() string {
+func schema(availableNodes map[string]NewFacility) string {
 	ifList := make([]nodeIf, len(availableNodes))
 	keys := make([]string, len(availableNodes))
 	sc := map[string]interface{}{
