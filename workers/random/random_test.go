@@ -24,7 +24,8 @@ func TestRandomProcesslen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := random.NewRandom(tt.opts)
-			input := make(chan []byte)
+			input := make(chan []byte, 1)
+			input <- nil
 			output := make(chan []byte)
 			var msg []byte
 			go func() {

@@ -23,16 +23,28 @@ type Random struct {
 //Process implements Worker interface
 func (r *Random) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
+
+	isNil := args.Input == nil
+	var input <-chan []byte
+	if !isNil {
+		input = args.Input
+	} else {
+		inp := make(chan []byte)
+		close(inp)
+		input = inp
+	}
 	for {
-		msg := make([]byte, r.opts.Len)
-		if _, err := rand.Read(msg); err != nil {
-			return err
-		}
 		select {
-		case args.Output <- msg:
-		case _, ok := <-args.Input:
-			if !ok {
+		case _, ok := <-input:
+			if !ok && !isNil {
 				return nil
+			}
+			msg := make([]byte, r.opts.Len)
+			if _, err := rand.Read(msg); err != nil {
+				return err
+			}
+			if err := selina.SendContext(ctx, msg, args.Output); err != nil {
+				return err
 			}
 		case <-ctx.Done():
 			return ctx.Err()
