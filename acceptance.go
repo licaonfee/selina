@@ -8,9 +8,14 @@ import (
 
 const stopPipelineTime = time.Millisecond * 20
 
-var ErrNotHaveNodes = errors.New("Pipeliner does not have nodes")
-var ErrInconsistentStart = errors.New("Pipeliner does not start all nodes")
-var ErrMissingStats = errors.New("missing nodes in Stats map")
+var (
+	//ErrNotHaveNodes attempt to start a pipeline without nodes
+	ErrNotHaveNodes = errors.New("Pipeliner does not have nodes")
+	//ErrInconsistentStart pipeline does not start all given nodes
+	ErrInconsistentStart = errors.New("Pipeliner does not start all nodes")
+	//ErrMissingStats some nodes stats are absent on call Stat method
+	ErrMissingStats = errors.New("missing nodes in Stats map")
+)
 
 //ATPipelineStartAll all Nodes in a pipeline mus be started when pipeline.Start is called
 func ATPipelineStartAll(p Pipeliner) error {
@@ -48,6 +53,7 @@ func ATPipelineContextCancel(p Pipeliner) error {
 	return nil
 }
 
+//ATPipelineStats check if a Pipeliner implementation get all nodes stats
 func ATPipelineStats(p Pipeliner) error {
 	if err := p.Run(context.Background()); err != nil {
 		return err

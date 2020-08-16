@@ -10,6 +10,8 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+//Stats contain node overall statistics
+//Counters are garanted to be consistent only when node finalize
 type Stats struct {
 	Time          time.Time
 	Sent          int64
@@ -31,10 +33,12 @@ type Node struct {
 	chained map[string]struct{}
 }
 
+//ID return a unique identifier for this node
 func (n *Node) ID() string {
 	return n.id
 }
 
+//Name return node name this value is not unique
 func (n *Node) Name() string {
 	return n.name
 }

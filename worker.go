@@ -28,6 +28,7 @@ type ProcessArgs struct {
 	Err    chan error
 }
 
+//OptionsChecker provide a way to determine if a state is valid or not
 type OptionsChecker interface {
 	//Check return an error if options has an invalid value
 	//it must not modify values at all and by preference should be

@@ -19,6 +19,8 @@ func (c *DataCounter) SumData(msg []byte) {
 	atomic.AddInt64(&c.data, int64(len(msg)))
 }
 
+//Stats return values as an atomic operation per value
+//count and data will be consistent only with itself
 func (c *DataCounter) Stats() (count int64, data int64) {
 	return atomic.LoadInt64(&c.count), atomic.LoadInt64(&c.data)
 }

@@ -71,7 +71,7 @@ func loadDefinition(definition io.Reader, availableNodes map[string]NewFacility)
 	for _, n := range defined.NodeDefs {
 		facFunc, ok := availableNodes[n.Type]
 		if !ok {
-			return nil, errors.New("unavaliable type")
+			return nil, errors.New("unavailable type")
 		}
 		facility := facFunc()
 		if err := mapstructure.Decode(n.Args, &facility); err != nil {

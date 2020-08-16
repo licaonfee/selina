@@ -91,10 +91,10 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-func (r *Reader) serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
+func (s *Reader) serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
 	defer rows.Close()
 	obj := make(map[string]interface{})
-	m := r.opts.Mapper
+	m := s.opts.Mapper
 	if m == nil {
 		m = magiccol.DefaultMapper()
 	}
