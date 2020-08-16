@@ -46,6 +46,30 @@ func TestRandomProcesslen(t *testing.T) {
 	}
 }
 
+func TestRandomRunUntilCancel(t *testing.T) {
+	out := make(chan []byte)
+	args := selina.ProcessArgs{
+		Input:  nil,
+		Output: out,
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		i := 0
+		for range out {
+			i++
+			if i == 32 {
+				break
+			}
+		}
+		cancel()
+	}()
+	w := random.NewRandom(random.Options{Len: 32})
+	err := w.Process(ctx, args)
+	if err != context.Canceled {
+		t.Error("Process() not run forever")
+	}
+}
+
 func TestRandomProcessCancel(t *testing.T) {
 	p := random.NewRandom(random.Options{Len: 8})
 	if err := workers.ATProcessCancel(p); err != nil {
