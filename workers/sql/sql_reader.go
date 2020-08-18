@@ -22,7 +22,7 @@ type ReaderOptions struct {
 	//Query which SQL select will be executed into database
 	Query string
 	//Mapper allow to configure type Scan, default magiccol.DefaultMapper
-	Mapper magiccol.Mapper
+	Mapper *magiccol.Mapper
 }
 
 //Check if a combination of options is valid
