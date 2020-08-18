@@ -4,6 +4,7 @@ github.com/ClickHouse/clickhouse-go v1.4.1 h1:D9cihLg76O1ZyILLaXq1eksYzEuV010Ndv
 github.com/ClickHouse/clickhouse-go v1.4.1/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
 github.com/ClickHouse/clickhouse-go v1.4.3 h1:iAFMa2UrQdR5bHJ2/yaSLffZkxpcOYQMCUuKeNXGdqc=
 github.com/ClickHouse/clickhouse-go v1.4.3/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
+github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d h1:G0m3OIz70MZUWq3EgK3CesDbo8upS2Vm9/P3FtgI+Jk=
 github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/alecthomas/jsonschema v0.0.0-20200530073317-71f438968921 h1:T3+cD5fYvuH36h7EZq+TDpm+d8a6FSD4pQsbmuGGQ8o=
@@ -73,6 +74,8 @@ github.com/licaonfee/magiccol v0.1.0 h1:9V3zUW54uAN0W9VlC4FkCZB5KOM6DMmsRB+TABmx
 github.com/licaonfee/magiccol v0.1.0/go.mod h1:6IkcYek/s0QIlx4mYFOYKAb0q/OyjJcEErCECkHeLFg=
 github.com/licaonfee/magiccol v0.1.1 h1:U1IcoP8I+949pEUWREyPeEn8BUgTz1J0gcLW8ZusI2c=
 github.com/licaonfee/magiccol v0.1.1/go.mod h1:6IkcYek/s0QIlx4mYFOYKAb0q/OyjJcEErCECkHeLFg=
+github.com/licaonfee/magiccol v0.2.0 h1:sJD5ehuNeBY04kVhsP3J7OmqMQJkxtzx0FeYDmwwgbI=
+github.com/licaonfee/magiccol v0.2.0/go.mod h1:xElp1F3Or/erP0P3Ha+IziMcHvP/mVSoThBbFl7jmkM=
 github.com/mattn/go-sqlite3 v1.9.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v2.0.3+incompatible h1:gXHsfypPkaMZrKbD5209QV9jbUTJKjyR5WD3HYQSd+U=
 github.com/mattn/go-sqlite3 v2.0.3+incompatible/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
