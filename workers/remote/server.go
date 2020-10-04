@@ -52,11 +52,6 @@ func (s *Server) Push(msg []byte) error {
 	}
 }
 
-//Pull return the first message available in queue
-func (s *Server) Pull() []byte {
-	return <-s.dataC
-}
-
 //Process implements selina.Worker interface
 func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp error) {
 	defer close(args.Output)
