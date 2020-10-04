@@ -26,6 +26,7 @@ type ServerOptions struct {
 
 //Server receive data from a remote endpoint
 type Server struct {
+	UnimplementedWorkerServer
 	opts  ServerOptions
 	dataC chan []byte
 }
