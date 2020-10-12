@@ -82,6 +82,8 @@ By default selina has this workers implemented
 - sql.Writer : Insert rows into a table from json objects
 - text.Reader : Use any io.Reader and read its contents as text
 - text.Writer : Write text data into any io.Writer
+- filesystem.Reader : Use afero.Fs to read arbitrary files
+- filesystem.Writer : Use afero.Fs to write to arbitrary files
 
 ## Design
 
