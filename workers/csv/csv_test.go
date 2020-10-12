@@ -2,6 +2,7 @@ package csv_test
 
 import (
 	"context"
+	ecsv "encoding/csv"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -67,6 +68,13 @@ func TestEncoderProcess(t *testing.T) {
 			opts:    csv.EncoderOptions{Header: []string{"name", "id", "color"}},
 			input:   []string{`{"name": "Selina","id"0, "color":"yellow"}`, `{"name":"Lizbeth","id":1}`},
 			want:    []string{},
+			wantErr: &json.SyntaxError{},
+		},
+		{
+			name:    "Invalid JSON Handled",
+			opts:    csv.EncoderOptions{Header: []string{"name", "id", "color"}, Handler: func(error) bool { return true }},
+			input:   []string{`{"name": "Selina","id"0, "color":"yellow"}`, `{"name":"Lizbeth","id":1}`},
+			want:    []string{`name,id,color` + "\n", `Lizbeth,1,` + "\n"},
 			wantErr: &json.SyntaxError{},
 		},
 	}
@@ -154,6 +162,20 @@ func TestDecoderProcess(t *testing.T) {
 				`{"color":"","id":"7","name":"Lizbeth","pet":"cat"}`},
 			wantErr: nil,
 		},
+		{
+			name:    "malformed csv",
+			opts:    csv.DecoderOptions{Header: []string{"id", "name"}},
+			input:   []string{`6,Selina`, `7,Lizbeth,yellow`, `9,Alice`},
+			want:    []string{`{"id":"6","name":"Selina"}`},
+			wantErr: ecsv.ErrFieldCount,
+		},
+		{
+			name:    "malformed csv hanlded",
+			opts:    csv.DecoderOptions{Header: []string{"id", "name"}, Handler: func(error) bool { return true }},
+			input:   []string{`6,Selina`, `7,Lizbeth,yellow`, `9,Alice`},
+			want:    []string{`{"id":"6","name":"Selina"}`, `{"id":"9","name":"Alice"}`},
+			wantErr: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -165,8 +187,8 @@ func TestDecoderProcess(t *testing.T) {
 			}
 			output := make(chan []byte, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
-			if err := d.Process(context.Background(), args); err != tt.wantErr {
-				t.Fatalf("Process() err = %v", err)
+			if err := d.Process(context.Background(), args); !errors.Is(err, tt.wantErr) {
+				t.Fatalf("Process() err = %T, want = %T ", err, tt.wantErr)
 			}
 			got := selina.ChannelAsSlice(output)
 			if !reflect.DeepEqual(got, tt.want) {

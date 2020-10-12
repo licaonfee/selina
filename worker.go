@@ -35,3 +35,10 @@ type OptionsChecker interface {
 	//implemented as a value receiver
 	Check() error
 }
+
+// ErrorHanlder return true if error was handled inside function
+type ErrorHandler func(error) bool
+
+func DefaultErrorHanler(e error) bool {
+	return false
+}
