@@ -21,6 +21,7 @@ type EncoderOptions struct {
 	Comma rune
 	//UseCRLF use \r\n instead of \n
 	UseCRLF bool
+	Handler selina.ErrorHandler
 }
 
 type Encoder struct {
@@ -38,6 +39,11 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 		w.Comma = e.opts.Comma
 	}
 	w.UseCRLF = e.opts.UseCRLF
+	errHandler := selina.DefaultErrorHanler
+	if e.opts.Handler != nil {
+		errHandler = e.opts.Handler
+	}
+
 	var headerWriten bool
 	for {
 		select {
@@ -48,7 +54,12 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			data := make(map[string]interface{})
-			if err := json.Unmarshal(msg, &data); err != nil {
+			err := json.Unmarshal(msg, &data)
+			switch {
+			case err == nil:
+			case errHandler(err):
+				continue
+			default:
 				return err
 			}
 			getHeader(&e.opts.Header, data)
@@ -118,6 +129,7 @@ type DecoderOptions struct {
 	Header  []string
 	Comma   rune
 	Comment rune
+	Handler selina.ErrorHandler
 }
 
 type Decoder struct {
@@ -136,6 +148,10 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 	r.Comment = d.opts.Comment
 	r.ReuseRecord = true
+	errHandler := selina.DefaultErrorHanler
+	if d.opts.Handler != nil {
+		errHandler = d.opts.Handler
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -147,11 +163,12 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			buff.Reset()
 			_, _ = buff.Write(msg)
 			row, err := r.Read()
-			if err != nil {
-				if err != io.EOF {
-					return err
-				}
+			switch {
+			case err == nil:
+			case err == io.EOF || errHandler(err):
 				continue
+			default:
+				return err
 			}
 			res := make(map[string]interface{})
 			for i := 0; i < len(row); i++ {

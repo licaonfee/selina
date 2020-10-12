@@ -29,6 +29,7 @@ type ReaderOptions struct {
 	Fs        afero.Fs
 	SplitFunc bufio.SplitFunc
 	Filename  Filenamer
+	Hanlder   selina.ErrorHandler
 }
 
 // Reader for every message received it call Filenamer.Filename(msg)
@@ -49,6 +50,10 @@ func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			err = e
 		}
 	}()
+	errHandler := selina.DefaultErrorHanler
+	if r.opts.Hanlder != nil {
+		errHandler = r.opts.Hanlder
+	}
 	for {
 		select {
 		case msg, ok := <-args.Input:
@@ -57,7 +62,11 @@ func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			}
 			fname := r.opts.Filename.Filename(msg)
 			file, err := r.opts.Fs.Open(fname)
-			if err != nil {
+			switch {
+			case err == nil:
+			case errHandler(err):
+				continue
+			default:
 				return fmt.Errorf("Process was unable to open file from fs %w", err)
 			}
 			currFile = file

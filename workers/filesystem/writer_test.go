@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"regexp"
+	"syscall"
 	"testing"
 
 	"github.com/licaonfee/selina"
@@ -73,6 +75,32 @@ func TestWriterProcess(t *testing.T) {
 				"/tmp/otherfile.txt": "/tmp/otherfile.txt"}),
 			wantErr: nil,
 		},
+		{
+			name: "cannot open file",
+			opts: fs.WriterOptions{
+				Filename: nameFromBytes{},
+				Fs:       afero.NewRegexpFs(afero.NewMemMapFs(), regexp.MustCompile(`\.file$`)),
+			},
+			in: []string{"/tmp/my.file", "/tmp/denied.txt", "/tmp/your.file"},
+			want: populateFs(map[string]string{
+				"/tmp/my.file": "/tmp/my.file",
+			}),
+			wantErr: syscall.ENOENT,
+		},
+		{
+			name: "cannot open file handled",
+			opts: fs.WriterOptions{
+				Filename: nameFromBytes{},
+				Fs:       afero.NewRegexpFs(afero.NewMemMapFs(), regexp.MustCompile(`\.file$`)),
+				Hanlder:  func(error) bool { return true },
+			},
+			in: []string{"/tmp/my.file", "/tmp/denied.txt", "/tmp/your.file"},
+			want: populateFs(map[string]string{
+				"/tmp/my.file":   "/tmp/my.file",
+				"/tmp/your.file": "/tmp/your.file",
+			}),
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -81,8 +109,8 @@ func TestWriterProcess(t *testing.T) {
 			output := make(chan []byte)
 			args := selina.ProcessArgs{Input: input, Output: output}
 			err := r.Process(context.Background(), args)
-			if !errors.Is(err, tt.wantErr) && !errors.As(err, &tt.wantErr) {
-				t.Errorf("Process() err = %T , want = %v", err, tt.wantErr)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("Process() err = %v , want = %v", err, tt.wantErr)
 			}
 
 			if !compareFs(tt.want, tt.opts.Fs) {
