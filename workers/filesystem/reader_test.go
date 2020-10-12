@@ -74,6 +74,19 @@ func TestReaderProcess(t *testing.T) {
 			want:    []string{},
 			wantErr: os.ErrNotExist,
 		},
+		{
+			name: "File not found handled",
+			opts: fs.ReaderOptions{
+				Filename: fs.FilenameFunc(func() string { return "/tmp/missing.file" }),
+				Fs: populateFs(map[string]string{
+					"/tmp/my.file": "some data\nin the file"}),
+				SplitFunc: bufio.ScanLines,
+				Hanlder:   func(error) bool { return true },
+			},
+			in:      []string{"/tmp/my.file"},
+			want:    []string{},
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

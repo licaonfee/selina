@@ -15,6 +15,7 @@ type WriterOptions struct {
 	AddNewLine bool
 	BufferSize int
 	Mode       os.FileMode
+	Hanlder    selina.ErrorHandler
 }
 
 type Writer struct {
@@ -36,6 +37,10 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 			err = e
 		}
 	}()
+	errHandler := selina.DefaultErrorHanler
+	if w.opts.Hanlder != nil {
+		errHandler = w.opts.Hanlder
+	}
 	for {
 		select {
 		case msg, ok := <-args.Input:
@@ -44,16 +49,20 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 			}
 			fname := w.opts.Filename.Filename(msg)
 			if fname != currFname {
-				currFname = fname
 				if currFile != nil {
 					currFile.Close()
 				}
 
 				f, err := w.opts.Fs.Create(fname)
-				if err != nil {
+				switch {
+				case err == nil:
+				case errHandler(err):
+					continue
+				default:
 					return err
 				}
 				currFile = f
+				currFname = fname
 			}
 			if _, err := currFile.Write(msg); err != nil {
 				return err
