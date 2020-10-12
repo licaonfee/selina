@@ -18,6 +18,7 @@ require (
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/proullon/ramsql v0.0.0-20181213202341-817cee58a244
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/spf13/afero v1.4.1
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
