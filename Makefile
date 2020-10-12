@@ -12,6 +12,7 @@ deps:
 utest:
 		$(GOTEST) -race -count 1 -timeout 30s  -coverprofile coverage.out  ./... 
 cover:
+		sed -i "/\\.pb\\.go/d" coverage.out
 		$(GOTOOL) cover -func=coverage.out 
 
 clean:
