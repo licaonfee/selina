@@ -11,7 +11,7 @@ import (
 )
 
 // Filenamer is used to provide an easy way to
-// provide dynamic file names to reader/writer
+// generate dynamic files name to reader/writer
 // msg is readed from input chanel in Process
 type Filenamer interface {
 	Filename(msg []byte) string
