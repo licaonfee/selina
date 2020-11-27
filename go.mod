@@ -13,7 +13,7 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/licaonfee/magiccol v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
-	github.com/mitchellh/mapstructure v1.3.3
+	github.com/mitchellh/mapstructure v1.4.0
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/nxadm/tail v1.4.5 // indirect
 	github.com/oklog/ulid/v2 v2.0.2
