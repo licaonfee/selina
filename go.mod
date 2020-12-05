@@ -10,7 +10,7 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/google/gops v0.3.13
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lib/pq v1.8.0
+	github.com/lib/pq v1.9.0
 	github.com/licaonfee/magiccol v1.0.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.4.0
