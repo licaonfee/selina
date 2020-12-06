@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -16,18 +17,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const address = "localhost:65000"
+const address = "localhost:"
+const baseport = 65000
+
+var autoport int = 0
 
 func producer(data string) selina.Pipeliner {
 	txt := text.NewReader(text.ReaderOptions{Reader: strings.NewReader(data)})
-	client := remote.NewClient(remote.ClientOptions{Address: address})
+	autoport++
+	client := remote.NewClient(remote.ClientOptions{Address: address + strconv.Itoa(baseport+autoport)})
 	return selina.LinealPipeline(
 		selina.NewNode("input", txt),
 		selina.NewNode("grpc", client))
 }
 
 func consumer(w io.Writer) selina.Pipeliner {
-	server := remote.NewServer(remote.ServerOptions{Network: "tcp", Address: address})
+	server := remote.NewServer(remote.ServerOptions{Network: "tcp", Address: address + strconv.Itoa(baseport+autoport)})
 	txt := text.NewWriter(text.WriterOptions{Writer: w})
 	return selina.LinealPipeline(
 		selina.NewNode("grpc", server),
@@ -35,7 +40,6 @@ func consumer(w io.Writer) selina.Pipeliner {
 }
 
 func TestRemote(t *testing.T) {
-	const pauseDuration = time.Millisecond * 250
 	tests := []struct {
 		name string
 		data string
@@ -57,23 +61,19 @@ func TestRemote(t *testing.T) {
 			var recv bytes.Buffer
 			p := producer(tt.data)
 			c := consumer(&recv)
-			ctxParent, cancel := context.WithCancel(context.Background())
-			eg, ctx := errgroup.WithContext(ctxParent)
+			eg, ctx := errgroup.WithContext(context.Background())
+			consCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 			eg.Go(func() error {
-				return c.Run(ctx)
+				return c.Run(consCtx)
 			})
-			time.Sleep(pauseDuration)
 			eg.Go(func() error {
-				return p.Run(ctx)
+				err := p.Run(ctx)
+				return err
 			})
-			time.Sleep(pauseDuration)
-			eg.Go(func() error {
-				cancel()
-				return nil
-			})
-			if err := eg.Wait(); err != nil && err != context.Canceled {
+			if err := eg.Wait(); err != nil && err != context.DeadlineExceeded {
 				t.Errorf("unexpected error = %v", err)
 			}
+			cancel()
 			got := recv.String()
 			if tt.data != got {
 				t.Errorf("Data transfer failed: got = '%v' , want = '%v'", got, tt.data)

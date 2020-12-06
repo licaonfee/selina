@@ -13,5 +13,5 @@ message Message {
 }
 
 service Worker {
-  rpc Send(Message) returns (Error);
+  rpc Pipe(stream Message) returns (Error);
 }

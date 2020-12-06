@@ -39,7 +39,6 @@ func TestClientProcessCancelation(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
 func TestClientProcessCloseInput(t *testing.T) {
 	r := remote.NewClient(remote.ClientOptions{Address: "localhost:7777"})
 	if err := workers.ATProcessCloseInput(r); err != nil {

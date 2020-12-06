@@ -17,7 +17,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type WorkerClient interface {
-	Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Error, error)
+	Pipe(ctx context.Context, opts ...grpc.CallOption) (Worker_PipeClient, error)
 }
 
 type workerClient struct {
@@ -28,20 +28,45 @@ func NewWorkerClient(cc grpc.ClientConnInterface) WorkerClient {
 	return &workerClient{cc}
 }
 
-func (c *workerClient) Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
-	err := c.cc.Invoke(ctx, "/remote.Worker/Send", in, out, opts...)
+func (c *workerClient) Pipe(ctx context.Context, opts ...grpc.CallOption) (Worker_PipeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Worker_serviceDesc.Streams[0], "/remote.Worker/Pipe", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &workerPipeClient{stream}
+	return x, nil
+}
+
+type Worker_PipeClient interface {
+	Send(*Message) error
+	CloseAndRecv() (*Error, error)
+	grpc.ClientStream
+}
+
+type workerPipeClient struct {
+	grpc.ClientStream
+}
+
+func (x *workerPipeClient) Send(m *Message) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *workerPipeClient) CloseAndRecv() (*Error, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Error)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // WorkerServer is the server API for Worker service.
 // All implementations must embed UnimplementedWorkerServer
 // for forward compatibility
 type WorkerServer interface {
-	Send(context.Context, *Message) (*Error, error)
+	Pipe(Worker_PipeServer) error
 	mustEmbedUnimplementedWorkerServer()
 }
 
@@ -49,8 +74,8 @@ type WorkerServer interface {
 type UnimplementedWorkerServer struct {
 }
 
-func (UnimplementedWorkerServer) Send(context.Context, *Message) (*Error, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Send not implemented")
+func (UnimplementedWorkerServer) Pipe(Worker_PipeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Pipe not implemented")
 }
 func (UnimplementedWorkerServer) mustEmbedUnimplementedWorkerServer() {}
 
@@ -65,33 +90,42 @@ func RegisterWorkerServer(s *grpc.Server, srv WorkerServer) {
 	s.RegisterService(&_Worker_serviceDesc, srv)
 }
 
-func _Worker_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Message)
-	if err := dec(in); err != nil {
+func _Worker_Pipe_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(WorkerServer).Pipe(&workerPipeServer{stream})
+}
+
+type Worker_PipeServer interface {
+	SendAndClose(*Error) error
+	Recv() (*Message, error)
+	grpc.ServerStream
+}
+
+type workerPipeServer struct {
+	grpc.ServerStream
+}
+
+func (x *workerPipeServer) SendAndClose(m *Error) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *workerPipeServer) Recv() (*Message, error) {
+	m := new(Message)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(WorkerServer).Send(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/remote.Worker/Send",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WorkerServer).Send(ctx, req.(*Message))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 var _Worker_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "remote.Worker",
 	HandlerType: (*WorkerServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "Send",
-			Handler:    _Worker_Send_Handler,
+			StreamName:    "Pipe",
+			Handler:       _Worker_Pipe_Handler,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
 }

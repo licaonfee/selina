@@ -3,6 +3,7 @@ package remote
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 
 	"github.com/licaonfee/selina"
@@ -31,14 +32,24 @@ type Server struct {
 	dataC chan []byte
 }
 
-//Send implements grpc service
-func (s *Server) Send(ctx context.Context, msg *Message) (*Error, error) {
-	select {
-	case <-ctx.Done():
-		return &Error{Message: ctx.Err().Error()}, ctx.Err()
-	case s.dataC <- msg.Data:
-		return &Error{}, nil
+//Pipe implements grpc service
+func (s *Server) Pipe(w Worker_PipeServer) error {
+	for {
+		msg, err := w.Recv()
+		switch err {
+		case nil:
+		case io.EOF:
+			if msg.GetData() == nil {
+				return nil
+			}
+		default:
+			if msg.GetData() == nil {
+				return err
+			}
+		}
+		s.dataC <- msg.GetData()
 	}
+
 }
 
 //Push put a []byte into process stream, return ErrDiscarded if
@@ -63,7 +74,11 @@ func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp err
 	gserver := grpc.NewServer()
 	RegisterWorkerServer(gserver, s)
 	//TODO: handle Server error
-	go gserver.Serve(listener)
+	go func() {
+		if err := gserver.Serve(listener); err != nil {
+			panic(err)
+		}
+	}()
 	defer gserver.GracefulStop()
 	for {
 		select {

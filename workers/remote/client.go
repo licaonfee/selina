@@ -22,22 +22,25 @@ type Client struct {
 //Process implements selina.Worker interface
 func (c *Client) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
-	conn, err := grpc.DialContext(ctx, c.opts.Address, grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, c.opts.Address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
 		return err
 	}
 	//TODO: handle error
 	defer conn.Close()
 	wc := NewWorkerClient(conn)
+	sc, err := wc.Pipe(ctx)
+	if err != nil {
+		return err
+	}
+	defer sc.CloseSend()
 	for {
 		select {
 		case msg, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
-			m := Message{Data: msg}
-			_, err := wc.Send(ctx, &m)
-			if err != nil {
+			if err := sc.Send(&Message{Data: msg}); err != nil {
 				return err
 			}
 		case <-ctx.Done():
