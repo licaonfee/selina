@@ -63,6 +63,14 @@ func (n *Node) Chain(next *Node) *Node {
 	return next
 }
 
+func (n *Node) Next() []string {
+	ret := make([]string, 0, len(n.chained))
+	for k := range n.chained {
+		ret = append(ret, k)
+	}
+	return ret
+}
+
 //IsChained returns true if Chain was called before with other
 func (n *Node) IsChained(other *Node) bool {
 	_, ok := n.chained[other.ID()]

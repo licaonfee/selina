@@ -12,6 +12,7 @@ Unstable API, please use go modules
 - [selina](#selina)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Graphviz](#graphviz)
   - [Builtin workers](#builtin-workers)
   - [Design](#design)
     - [Pipeline](#pipeline)
@@ -65,6 +66,41 @@ func main() {
     }
 }
 ```
+
+## Graphviz
+
+Optionally you can render a graph of your pipeline
+
+```go
+func main(){
+    // here pipeline is built
+    p := selina.FreePipeline(read,filter,write,store,custom,csv)
+    selina.Graph(p, os.Stdout)
+}
+```
+
+With te previous code you get a .dot graph 
+
+```dot
+digraph {
+	rankdir=LR;
+	X0001FXACQQKSTZV3SGXZPF3C9C[label="Filter"];
+	X0001FXACQQKSTZV3SGY4YSE6NX[label="Write"];
+	X0001FXACQQKSTZV3SGY2XQMB1X[label="Custom"];
+	X0001FXACQQKSTZV3SGY5QMFJ0Q[label="Store"];
+	X0001FXACQQKSTZV3SGXTVX3MPP[label="Read"];
+	X0001FXACQQKSTZV3SGXXXA43EF[label="CSV"];
+	X0001FXACQQKSTZV3SGXTVX3MPP -> X0001FXACQQKSTZV3SGXXXA43EF;
+	X0001FXACQQKSTZV3SGXTVX3MPP -> X0001FXACQQKSTZV3SGXZPF3C9C;
+	X0001FXACQQKSTZV3SGXXXA43EF -> X0001FXACQQKSTZV3SGY4YSE6NX;
+	X0001FXACQQKSTZV3SGXZPF3C9C -> X0001FXACQQKSTZV3SGY2XQMB1X;
+	X0001FXACQQKSTZV3SGY2XQMB1X -> X0001FXACQQKSTZV3SGY5QMFJ0Q;
+}
+```
+
+Renderized with graphviz 
+
+![graph](docs/graph.png)
 
 ## Builtin workers
 

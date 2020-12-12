@@ -2,6 +2,8 @@ package selina
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -77,4 +79,29 @@ func FreePipeline(nodes ...*Node) Pipeliner {
 
 	}
 	return p
+}
+
+func Graph(p Pipeliner, w io.Writer) error {
+	_, err := fmt.Fprintln(w, "digraph {\n\trankdir=LR;")
+	if err != nil {
+		return err
+	}
+	for _, n := range p.Nodes() {
+		_, err := fmt.Fprintf(w, "\tX%s[label=\"%s\"];\n", n.ID(), n.Name())
+		if err != nil {
+			return err
+		}
+	}
+	for _, n := range p.Nodes() {
+		for _, id := range n.Next() {
+			_, err := fmt.Fprintf(w, "\tX%s -> X%s;\n", n.ID(), id)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := fmt.Fprintln(w, "}"); err != nil {
+		return err
+	}
+	return nil
 }
