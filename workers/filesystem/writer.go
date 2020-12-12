@@ -52,8 +52,15 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 				if currFile != nil {
 					currFile.Close()
 				}
-
 				f, err := w.opts.Fs.Create(fname)
+				switch {
+				case err == nil:
+				case errHandler(err):
+					continue
+				default:
+					return err
+				}
+				err = w.opts.Fs.Chmod(fname, w.opts.Mode)
 				switch {
 				case err == nil:
 				case errHandler(err):
