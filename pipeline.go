@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -82,6 +83,7 @@ func FreePipeline(nodes ...*Node) Pipeliner {
 }
 
 func Graph(p Pipeliner, w io.Writer) error {
+	st := p.Stats()
 	_, err := fmt.Fprintln(w, "digraph {\n\trankdir=LR;")
 	if err != nil {
 		return err
@@ -93,8 +95,11 @@ func Graph(p Pipeliner, w io.Writer) error {
 		}
 	}
 	for _, n := range p.Nodes() {
-		for _, id := range n.Next() {
-			_, err := fmt.Fprintf(w, "\tX%s -> X%s;\n", n.ID(), id)
+		s := st[n.ID()]
+		next := n.Next()
+		bcount := bytesToHuman(float64(s.SentBytes))
+		for _, id := range next {
+			_, err := fmt.Fprintf(w, "\tX%s -> X%s [label=\"count=%d,bytes=%s\"];\n", n.ID(), id, s.Sent, bcount)
 			if err != nil {
 				return err
 			}
@@ -104,4 +109,21 @@ func Graph(p Pipeliner, w io.Writer) error {
 		return err
 	}
 	return nil
+}
+
+func bytesToHuman(count float64) string {
+	const byteCount = 1024
+	const kibi = 1 * byteCount
+	const mega = byteCount * byteCount
+	const giga = mega * byteCount
+	switch {
+	case count >= giga:
+		return strconv.FormatFloat(count/giga, 'f', 2, 64) + "GiB"
+	case count >= mega:
+		return strconv.FormatFloat(count/mega, 'f', 2, 64) + "MiB"
+	case count >= kibi:
+		return strconv.FormatFloat(count/kibi, 'f', 2, 64) + "KiB"
+	default:
+		return strconv.FormatInt(int64(count), 10) + "B"
+	}
 }

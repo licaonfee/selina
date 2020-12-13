@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -59,10 +59,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), *duration)
 	defer cancel()
 	if err := pipe.Run(ctx); err != context.DeadlineExceeded {
-		fmt.Printf("ERR: %v\n", err)
+		log.Printf("ERR: %v\n", err)
 	}
 	for _, node := range pipe.Nodes() {
 		stat := node.Stats()
-		fmt.Printf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received)
+		log.Printf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received)
 	}
+	selina.Graph(pipe, os.Stdout)
 }
