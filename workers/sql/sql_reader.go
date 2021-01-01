@@ -23,7 +23,8 @@ type ReaderOptions struct {
 	Query string
 	//Mapper allow to configure type Scan, default magiccol.DefaultMapper
 	Mapper *magiccol.Mapper
-	Codec  selina.Marshaller
+	//WriteFormat default is json.Marshal
+	WriteFormat selina.Marshaler
 }
 
 //Check if a combination of options is valid
@@ -73,8 +74,8 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		input = in
 	}
 	codec := json.Marshal
-	if s.opts.Codec != nil {
-		codec = s.opts.Codec
+	if s.opts.WriteFormat != nil {
+		codec = s.opts.WriteFormat
 	}
 	for {
 		select {
@@ -96,7 +97,7 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaller, rows *sql.Rows, out chan<- []byte) error {
+func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaler, rows *sql.Rows, out chan<- []byte) error {
 	defer rows.Close()
 	obj := make(map[string]interface{})
 	m := s.opts.Mapper

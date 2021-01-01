@@ -20,9 +20,9 @@ type EncoderOptions struct {
 	//Comma default ,
 	Comma rune
 	//UseCRLF use \r\n instead of \n
-	UseCRLF bool
-	Handler selina.ErrorHandler
-	Codec   selina.Unmarshaler
+	UseCRLF    bool
+	Handler    selina.ErrorHandler
+	ReadFormat selina.Unmarshaler
 }
 
 type Encoder struct {
@@ -46,9 +46,9 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 
 	var headerWriten bool
-	codec := json.Unmarshal
-	if e.opts.Codec != nil {
-		codec = e.opts.Codec
+	rf := json.Unmarshal
+	if e.opts.ReadFormat != nil {
+		rf = e.opts.ReadFormat
 	}
 	for {
 		select {
@@ -59,7 +59,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			data := make(map[string]interface{})
-			err := codec(msg, &data)
+			err := rf(msg, &data)
 			switch {
 			case err == nil:
 			case errHandler(err):
@@ -135,7 +135,7 @@ type DecoderOptions struct {
 	Comma   rune
 	Comment rune
 	Handler selina.ErrorHandler
-	Codec   selina.Marshaller
+	Codec   selina.Marshaler
 }
 
 type Decoder struct {

@@ -22,7 +22,8 @@ type WriterOptions struct {
 	Table string
 	//Builder (optional) customize SQL generation
 	Builder QueryBuilder
-	Codec   selina.Unmarshaler
+	//ReadFormat by default is  is json.Unmarshal
+	ReadFormat selina.Unmarshaler
 }
 
 //Check if a combination of options is valid
@@ -59,8 +60,8 @@ func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 		return err
 	}
 	codec := json.Unmarshal
-	if s.opts.Codec != nil {
-		codec = s.opts.Codec
+	if s.opts.ReadFormat != nil {
+		codec = s.opts.ReadFormat
 	}
 	for {
 		select {

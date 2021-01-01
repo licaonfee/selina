@@ -20,7 +20,7 @@ type WriterOptions struct {
 	AutoClose   bool
 	SkipNewLine bool
 	BufferSize  int
-	Codec       selina.Marshaller
+	Codec       selina.Marshaler
 }
 
 //Check if a combination of options is valid

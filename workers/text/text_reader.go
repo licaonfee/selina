@@ -3,11 +3,11 @@ package text
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 
 	"github.com/licaonfee/selina"
-	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*Reader)(nil)
@@ -26,7 +26,11 @@ type ReaderOptions struct {
 	AutoClose bool
 	//Default is ScanLines
 	SplitFunc bufio.SplitFunc
-	Codec     selina.Unmarshaler
+	//ReadFormat proccess every data point with this function
+	//default is nil , raw message is passed to WriteFormat
+	ReadFormat selina.Unmarshaler
+	//WriteFormat by default is json.Marshal
+	WriteFormat selina.Marshaler
 }
 
 //Check if a combination of options is valid
@@ -68,7 +72,10 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	if t.opts.SplitFunc != nil {
 		sc.Split(t.opts.SplitFunc)
 	}
-
+	wf := json.Marshal
+	if t.opts.WriteFormat != nil {
+		wf = t.opts.WriteFormat
+	}
 	for sc.Scan() {
 		select {
 		case _, ok := <-args.Input:
@@ -79,12 +86,12 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			return ctx.Err()
 		default:
 			msg := []byte(sc.Text())
-			if t.opts.Codec != nil {
+			if t.opts.ReadFormat != nil {
 				data := new(interface{})
-				if err := t.opts.Codec(msg, data); err != nil {
+				if err := t.opts.ReadFormat(msg, data); err != nil {
 					return err
 				}
-				msg, err = msgpack.Marshal(data)
+				msg, err = wf(data)
 				if err != nil {
 					return err
 				}
