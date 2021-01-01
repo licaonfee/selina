@@ -3,8 +3,6 @@ package sql_test
 import (
 	"context"
 	dbsql "database/sql"
-	"encoding/base64"
-	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -37,29 +35,6 @@ func setupDB(name string) {
 	}
 }
 
-//ramsql return all data as slice of bytes ,
-// and not implemets driver.RowsColumnTypeScanType
-// so all values are scanned to interface{} and strings
-// are stored as base64
-func decode(data []string) []string {
-	res := make([]string, len(data))
-	for i, row := range data {
-		val := make(map[string]string)
-		if err := json.Unmarshal([]byte(row), &val); err != nil {
-			panic(err)
-		}
-		for k, v := range val {
-			nv, _ := base64.StdEncoding.DecodeString(v)
-			val[k] = string(nv)
-		}
-		newdata, err := json.Marshal(val)
-		if err != nil {
-			panic(err)
-		}
-		res[i] = string(newdata)
-	}
-	return res
-}
 func TestSQLReader_Process(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -88,7 +63,7 @@ func TestSQLReader_Process(t *testing.T) {
 		{
 			name:    "Success",
 			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;"},
-			want:    []string{`{"name":"selina"}`, `{"name":"lizbeth"}`},
+			want:    []string{"\x81\xa4name\xc4\x06selina", "\x81\xa4name\xc4\alizbeth"},
 			wantErr: false,
 		},
 	}
@@ -102,7 +77,7 @@ func TestSQLReader_Process(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("Process() err = %v , wantErr=%v", err, tt.wantErr)
 			}
-			got := decode(selina.ChannelAsSlice(output))
+			got := selina.ChannelAsSlice(output)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}

@@ -3,11 +3,11 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"github.com/licaonfee/magiccol"
 	"github.com/licaonfee/selina"
+	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*Reader)(nil)
@@ -102,10 +102,9 @@ func (s *Reader) serializeRows(ctx context.Context, rows *sql.Rows, out chan<- [
 	if err != nil {
 		return err
 	}
-
 	for sc.Scan() {
 		sc.SetMap(obj)
-		msg, err := json.Marshal(obj)
+		msg, err := msgpack.Marshal(obj)
 		if err != nil {
 			return err
 		}

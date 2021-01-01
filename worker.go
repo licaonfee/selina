@@ -44,3 +44,6 @@ type ErrorHandler func(error) bool
 func DefaultErrorHanler(e error) bool {
 	return false
 }
+
+type Unmarshaler func([]byte, interface{}) error
+type Marshaller func(interface{}) ([]byte, error)

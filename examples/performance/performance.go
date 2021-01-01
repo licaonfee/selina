@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"io"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -50,7 +50,7 @@ func main() {
 		log.Fatal(err)
 	}
 	rd := newInfiniteReader(sample)
-	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd}))
+	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd, Codec: json.Unmarshal}))
 	//Just print name and pet
 	filter := selina.NewNode("CSV", csv.NewEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}}))
 	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: ioutil.Discard, SkipNewLine: true}))
@@ -65,5 +65,5 @@ func main() {
 		stat := node.Stats()
 		log.Printf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received)
 	}
-	selina.Graph(pipe, os.Stdout)
+	//selina.Graph(pipe, os.Stdout)
 }

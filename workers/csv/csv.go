@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"encoding/json"
 	"io"
 	"sort"
 	"strconv"
 
 	"github.com/licaonfee/selina"
+	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*Encoder)(nil)
@@ -54,7 +54,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			data := make(map[string]interface{})
-			err := json.Unmarshal(msg, &data)
+			err := msgpack.Unmarshal(msg, &data)
 			switch {
 			case err == nil:
 			case errHandler(err):
@@ -62,8 +62,8 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			default:
 				return err
 			}
-			getHeader(&e.opts.Header, data)
 			if !headerWriten {
+				e.opts.Header = getHeader(data)
 				if err := sendData(ctx, e.opts.Header, w, buff, args.Output); err != nil {
 					return err
 				}
@@ -81,15 +81,13 @@ func NewEncoder(opts EncoderOptions) *Encoder {
 	return &Encoder{opts: opts}
 }
 
-func getHeader(header *[]string, sample map[string]interface{}) {
-	if len(*header) > 0 {
-		return
-	}
-	*header = make([]string, 0, len(sample))
+func getHeader(sample map[string]interface{}) []string {
+	header := make([]string, 0, len(sample))
 	for k := range sample {
-		*header = append(*header, k)
+		header = append(header, k)
 	}
-	sort.Strings(*header)
+	sort.Strings(header)
+	return header
 }
 
 func getRow(header []string, data map[string]interface{}) []string {
@@ -174,7 +172,7 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			for i := 0; i < len(row); i++ {
 				res[d.opts.Header[i]] = row[i]
 			}
-			b, err := json.Marshal(res)
+			b, err := msgpack.Marshal(res)
 			if err != nil {
 				return err
 			}

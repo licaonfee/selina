@@ -7,6 +7,7 @@ import (
 	"io"
 
 	"github.com/licaonfee/selina"
+	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*Reader)(nil)
@@ -25,6 +26,7 @@ type ReaderOptions struct {
 	AutoClose bool
 	//Default is ScanLines
 	SplitFunc bufio.SplitFunc
+	Codec     selina.Unmarshaler
 }
 
 //Check if a combination of options is valid
@@ -66,15 +68,30 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	if t.opts.SplitFunc != nil {
 		sc.Split(t.opts.SplitFunc)
 	}
+
 	for sc.Scan() {
 		select {
 		case _, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
-		case args.Output <- []byte(sc.Text()):
 		case <-ctx.Done():
 			return ctx.Err()
+		default:
+			msg := []byte(sc.Text())
+			if t.opts.Codec != nil {
+				data := new(interface{})
+				if err := t.opts.Codec(msg, data); err != nil {
+					return err
+				}
+				msg, err = msgpack.Marshal(data)
+				if err != nil {
+					return err
+				}
+			}
+			if err := selina.SendContext(ctx, msg, args.Output); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

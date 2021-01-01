@@ -192,7 +192,7 @@ func TestDecoderProcess(t *testing.T) {
 			}
 			got := selina.ChannelAsSlice(output)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("Process() got = %v , want = %v", got, tt.want)
+				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}
 
 		})
