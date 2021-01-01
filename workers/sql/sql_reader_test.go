@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/licaonfee/magiccol"
 	"github.com/licaonfee/selina"
 
 	"github.com/licaonfee/selina/workers"
@@ -36,6 +37,8 @@ func setupDB(name string) {
 }
 
 func TestSQLReader_Process(t *testing.T) {
+	mapper := magiccol.DefaultMapper()
+	mapper.Match(magiccol.ColumnNameAs("name", reflect.TypeOf("")))
 	tests := []struct {
 		name    string
 		opts    sql.ReaderOptions
@@ -44,26 +47,26 @@ func TestSQLReader_Process(t *testing.T) {
 	}{
 		{
 			name:    "Unregistered Driver",
-			opts:    sql.ReaderOptions{Driver: "unknow", ConnStr: "unknow", Query: ""},
+			opts:    sql.ReaderOptions{Driver: "unknow", ConnStr: "unknow", Query: "", Mapper: mapper},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Empty Query",
-			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "empty_query", Query: ""},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "empty_query", Query: "", Mapper: mapper},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Invalid Query",
-			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;"},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;", Mapper: mapper},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Success",
-			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;"},
-			want:    []string{"\x81\xa4name\xc4\x06selina", "\x81\xa4name\xc4\alizbeth"},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;", Mapper: mapper},
+			want:    []string{`{"name":"selina"}`, `{"name":"lizbeth"}`},
 			wantErr: false,
 		},
 	}

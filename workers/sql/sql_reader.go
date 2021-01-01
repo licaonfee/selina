@@ -3,11 +3,11 @@ package sql
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/licaonfee/magiccol"
 	"github.com/licaonfee/selina"
-	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*Reader)(nil)
@@ -23,6 +23,7 @@ type ReaderOptions struct {
 	Query string
 	//Mapper allow to configure type Scan, default magiccol.DefaultMapper
 	Mapper *magiccol.Mapper
+	Codec  selina.Marshaller
 }
 
 //Check if a combination of options is valid
@@ -71,6 +72,10 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		close(in)
 		input = in
 	}
+	codec := json.Marshal
+	if s.opts.Codec != nil {
+		codec = s.opts.Codec
+	}
 	for {
 		select {
 		case _, ok := <-input:
@@ -81,7 +86,7 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			if err != nil {
 				return err
 			}
-			if err := s.serializeRows(ctx, rows, args.Output); err != nil {
+			if err := s.serializeRows(ctx, codec, rows, args.Output); err != nil {
 				return err
 			}
 
@@ -91,7 +96,7 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-func (s *Reader) serializeRows(ctx context.Context, rows *sql.Rows, out chan<- []byte) error {
+func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaller, rows *sql.Rows, out chan<- []byte) error {
 	defer rows.Close()
 	obj := make(map[string]interface{})
 	m := s.opts.Mapper
@@ -104,7 +109,7 @@ func (s *Reader) serializeRows(ctx context.Context, rows *sql.Rows, out chan<- [
 	}
 	for sc.Scan() {
 		sc.SetMap(obj)
-		msg, err := msgpack.Marshal(obj)
+		msg, err := codec(obj)
 		if err != nil {
 			return err
 		}
