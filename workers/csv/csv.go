@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"io"
 	"sort"
 	"strconv"
 
 	"github.com/licaonfee/selina"
-	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*Encoder)(nil)
@@ -22,6 +22,7 @@ type EncoderOptions struct {
 	//UseCRLF use \r\n instead of \n
 	UseCRLF bool
 	Handler selina.ErrorHandler
+	Codec   selina.Unmarshaler
 }
 
 type Encoder struct {
@@ -45,6 +46,10 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 
 	var headerWriten bool
+	codec := json.Unmarshal
+	if e.opts.Codec != nil {
+		codec = e.opts.Codec
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -54,7 +59,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			data := make(map[string]interface{})
-			err := msgpack.Unmarshal(msg, &data)
+			err := codec(msg, &data)
 			switch {
 			case err == nil:
 			case errHandler(err):
@@ -63,7 +68,9 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return err
 			}
 			if !headerWriten {
-				e.opts.Header = getHeader(data)
+				if len(e.opts.Header) == 0 {
+					e.opts.Header = getHeader(data)
+				}
 				if err := sendData(ctx, e.opts.Header, w, buff, args.Output); err != nil {
 					return err
 				}
@@ -128,6 +135,7 @@ type DecoderOptions struct {
 	Comma   rune
 	Comment rune
 	Handler selina.ErrorHandler
+	Codec   selina.Marshaller
 }
 
 type Decoder struct {
@@ -149,6 +157,10 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	errHandler := selina.DefaultErrorHanler
 	if d.opts.Handler != nil {
 		errHandler = d.opts.Handler
+	}
+	codec := json.Marshal
+	if d.opts.Codec != nil {
+		codec = d.opts.Codec
 	}
 	for {
 		select {
@@ -172,7 +184,7 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			for i := 0; i < len(row); i++ {
 				res[d.opts.Header[i]] = row[i]
 			}
-			b, err := msgpack.Marshal(res)
+			b, err := codec(res)
 			if err != nil {
 				return err
 			}
