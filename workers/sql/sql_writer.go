@@ -22,6 +22,8 @@ type WriterOptions struct {
 	Table string
 	//Builder (optional) customize SQL generation
 	Builder QueryBuilder
+	//ReadFormat by default is  is json.Unmarshal
+	ReadFormat selina.Unmarshaler
 }
 
 //Check if a combination of options is valid
@@ -57,13 +59,17 @@ func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 	if err != nil {
 		return err
 	}
+	codec := json.Unmarshal
+	if s.opts.ReadFormat != nil {
+		codec = s.opts.ReadFormat
+	}
 	for {
 		select {
 		case data, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
-			cols, values, err := deserialize(data)
+			cols, values, err := deserialize(codec, data)
 			if err != nil {
 				return err
 			}
@@ -87,9 +93,9 @@ func NewWriter(opts WriterOptions) *Writer {
 	return &Writer{opts: opts}
 }
 
-func deserialize(data []byte) (cols []string, values []interface{}, err error) {
+func deserialize(codec selina.Unmarshaler, data []byte) (cols []string, values []interface{}, err error) {
 	obj := make(map[string]interface{})
-	if err := json.Unmarshal(data, &obj); err != nil {
+	if err := codec(data, &obj); err != nil {
 		return nil, nil, err
 	}
 	cols = make([]string, 0, len(obj))

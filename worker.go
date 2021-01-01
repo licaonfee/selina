@@ -44,3 +44,9 @@ type ErrorHandler func(error) bool
 func DefaultErrorHanler(e error) bool {
 	return false
 }
+
+// Unmarshaler is a function type compatible with json.Unmarshal
+type Unmarshaler func([]byte, interface{}) error
+
+// Marshaler is a function type compatible with json.Marshal
+type Marshaler func(interface{}) ([]byte, error)

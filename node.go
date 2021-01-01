@@ -3,6 +3,7 @@ package selina
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -130,7 +131,11 @@ func (n *Node) Start(ctx context.Context) error {
 	defer safeCloseByteChan(outChan)
 	inCtx := newNodeContext(ctx, n.close)
 	args := ProcessArgs{Input: inChan, Output: outChan}
-	return n.w.Process(inCtx, args)
+	err := n.w.Process(inCtx, args)
+	if err != nil {
+		return fmt.Errorf("%s : %w", n.name, err)
+	}
+	return nil
 }
 
 //ErrStopNotStarted returned when Stop is called before Start method

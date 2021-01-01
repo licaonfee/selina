@@ -20,8 +20,9 @@ type EncoderOptions struct {
 	//Comma default ,
 	Comma rune
 	//UseCRLF use \r\n instead of \n
-	UseCRLF bool
-	Handler selina.ErrorHandler
+	UseCRLF    bool
+	Handler    selina.ErrorHandler
+	ReadFormat selina.Unmarshaler
 }
 
 type Encoder struct {
@@ -45,6 +46,10 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 
 	var headerWriten bool
+	rf := json.Unmarshal
+	if e.opts.ReadFormat != nil {
+		rf = e.opts.ReadFormat
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -54,7 +59,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			data := make(map[string]interface{})
-			err := json.Unmarshal(msg, &data)
+			err := rf(msg, &data)
 			switch {
 			case err == nil:
 			case errHandler(err):
@@ -62,8 +67,10 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			default:
 				return err
 			}
-			getHeader(&e.opts.Header, data)
 			if !headerWriten {
+				if len(e.opts.Header) == 0 {
+					e.opts.Header = getHeader(data)
+				}
 				if err := sendData(ctx, e.opts.Header, w, buff, args.Output); err != nil {
 					return err
 				}
@@ -81,15 +88,13 @@ func NewEncoder(opts EncoderOptions) *Encoder {
 	return &Encoder{opts: opts}
 }
 
-func getHeader(header *[]string, sample map[string]interface{}) {
-	if len(*header) > 0 {
-		return
-	}
-	*header = make([]string, 0, len(sample))
+func getHeader(sample map[string]interface{}) []string {
+	header := make([]string, 0, len(sample))
 	for k := range sample {
-		*header = append(*header, k)
+		header = append(header, k)
 	}
-	sort.Strings(*header)
+	sort.Strings(header)
+	return header
 }
 
 func getRow(header []string, data map[string]interface{}) []string {
@@ -130,6 +135,7 @@ type DecoderOptions struct {
 	Comma   rune
 	Comment rune
 	Handler selina.ErrorHandler
+	Codec   selina.Marshaler
 }
 
 type Decoder struct {
@@ -151,6 +157,10 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	errHandler := selina.DefaultErrorHanler
 	if d.opts.Handler != nil {
 		errHandler = d.opts.Handler
+	}
+	codec := json.Marshal
+	if d.opts.Codec != nil {
+		codec = d.opts.Codec
 	}
 	for {
 		select {
@@ -174,7 +184,7 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			for i := 0; i < len(row); i++ {
 				res[d.opts.Header[i]] = row[i]
 			}
-			b, err := json.Marshal(res)
+			b, err := codec(res)
 			if err != nil {
 				return err
 			}

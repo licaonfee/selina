@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"io"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -14,6 +14,7 @@ import (
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/csv"
 	"github.com/licaonfee/selina/workers/text"
+	"github.com/vmihailenco/msgpack"
 )
 
 const sample = `{"name":"Jimmy", "age": 22, "pet":"cat"}
@@ -50,9 +51,9 @@ func main() {
 		log.Fatal(err)
 	}
 	rd := newInfiniteReader(sample)
-	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd}))
+	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd, ReadFormat: json.Unmarshal, WriteFormat: msgpack.Marshal}))
 	//Just print name and pet
-	filter := selina.NewNode("CSV", csv.NewEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}}))
+	filter := selina.NewNode("CSV", csv.NewEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}, ReadFormat: msgpack.Unmarshal}))
 	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: ioutil.Discard, SkipNewLine: true}))
 	pipe := selina.LinealPipeline(input, filter, output)
 
@@ -65,5 +66,5 @@ func main() {
 		stat := node.Stats()
 		log.Printf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received)
 	}
-	selina.Graph(pipe, os.Stdout)
+	//selina.Graph(pipe, os.Stdout)
 }

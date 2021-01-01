@@ -3,12 +3,11 @@ package sql_test
 import (
 	"context"
 	dbsql "database/sql"
-	"encoding/base64"
-	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/licaonfee/magiccol"
 	"github.com/licaonfee/selina"
 
 	"github.com/licaonfee/selina/workers"
@@ -37,30 +36,9 @@ func setupDB(name string) {
 	}
 }
 
-//ramsql return all data as slice of bytes ,
-// and not implemets driver.RowsColumnTypeScanType
-// so all values are scanned to interface{} and strings
-// are stored as base64
-func decode(data []string) []string {
-	res := make([]string, len(data))
-	for i, row := range data {
-		val := make(map[string]string)
-		if err := json.Unmarshal([]byte(row), &val); err != nil {
-			panic(err)
-		}
-		for k, v := range val {
-			nv, _ := base64.StdEncoding.DecodeString(v)
-			val[k] = string(nv)
-		}
-		newdata, err := json.Marshal(val)
-		if err != nil {
-			panic(err)
-		}
-		res[i] = string(newdata)
-	}
-	return res
-}
 func TestSQLReader_Process(t *testing.T) {
+	mapper := magiccol.DefaultMapper()
+	mapper.Match(magiccol.ColumnNameAs("name", reflect.TypeOf("")))
 	tests := []struct {
 		name    string
 		opts    sql.ReaderOptions
@@ -69,25 +47,25 @@ func TestSQLReader_Process(t *testing.T) {
 	}{
 		{
 			name:    "Unregistered Driver",
-			opts:    sql.ReaderOptions{Driver: "unknow", ConnStr: "unknow", Query: ""},
+			opts:    sql.ReaderOptions{Driver: "unknow", ConnStr: "unknow", Query: "", Mapper: mapper},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Empty Query",
-			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "empty_query", Query: ""},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "empty_query", Query: "", Mapper: mapper},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Invalid Query",
-			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;"},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "invalid_query", Query: "SE;", Mapper: mapper},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name:    "Success",
-			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;"},
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;", Mapper: mapper},
 			want:    []string{`{"name":"selina"}`, `{"name":"lizbeth"}`},
 			wantErr: false,
 		},
@@ -102,7 +80,7 @@ func TestSQLReader_Process(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("Process() err = %v , wantErr=%v", err, tt.wantErr)
 			}
-			got := decode(selina.ChannelAsSlice(output))
+			got := selina.ChannelAsSlice(output)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}

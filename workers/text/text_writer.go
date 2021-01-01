@@ -20,6 +20,7 @@ type WriterOptions struct {
 	AutoClose   bool
 	SkipNewLine bool
 	BufferSize  int
+	Codec       selina.Marshaler
 }
 
 //Check if a combination of options is valid
@@ -72,6 +73,13 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		case msg, ok := <-args.Input:
 			if !ok {
 				return nil
+			}
+			if t.opts.Codec != nil {
+				data, err := t.opts.Codec(msg)
+				if err != nil {
+					return err
+				}
+				msg = data
 			}
 			_, err = w.Write(msg)
 			if err != nil {
