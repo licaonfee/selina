@@ -37,7 +37,7 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 			err = e
 		}
 	}()
-	errHandler := selina.DefaultErrorHanler
+	errHandler := selina.DefaultErrorHandler
 	if w.opts.Hanlder != nil {
 		errHandler = w.opts.Hanlder
 	}

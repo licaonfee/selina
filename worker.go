@@ -36,12 +36,12 @@ type OptionsChecker interface {
 	Check() error
 }
 
-// ErrorHanlder return true if error was handled inside function
+// ErrorHandler return true if error was handled inside function
 // if error is handled Worker must continue proccesing and just skip failure
 type ErrorHandler func(error) bool
 
-// DeafultErrorHandle is a pessimist error handler always returns false
-func DefaultErrorHanler(e error) bool {
+// DefaultErrorHandler is a pessimist error handler always returns false
+func DefaultErrorHandler(e error) bool {
 	return false
 }
 

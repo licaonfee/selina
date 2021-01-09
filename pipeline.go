@@ -82,6 +82,7 @@ func FreePipeline(nodes ...*Node) Pipeliner {
 	return p
 }
 
+// Graph export current pipeline structure and stats to .dot notation
 func Graph(p Pipeliner, w io.Writer) error {
 	st := p.Stats()
 	_, err := fmt.Fprintln(w, "digraph {\n\trankdir=LR;")

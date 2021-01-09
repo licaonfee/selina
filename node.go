@@ -64,6 +64,7 @@ func (n *Node) Chain(next *Node) *Node {
 	return next
 }
 
+// Next returns nodes id chained to current node
 func (n *Node) Next() []string {
 	ret := make([]string, 0, len(n.chained))
 	for k := range n.chained {

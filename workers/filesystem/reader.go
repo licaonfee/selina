@@ -50,7 +50,7 @@ func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			err = e
 		}
 	}()
-	errHandler := selina.DefaultErrorHanler
+	errHandler := selina.DefaultErrorHandler
 	if r.opts.Hanlder != nil {
 		errHandler = r.opts.Hanlder
 	}

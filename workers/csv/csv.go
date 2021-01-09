@@ -40,7 +40,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 		w.Comma = e.opts.Comma
 	}
 	w.UseCRLF = e.opts.UseCRLF
-	errHandler := selina.DefaultErrorHanler
+	errHandler := selina.DefaultErrorHandler
 	if e.opts.Handler != nil {
 		errHandler = e.opts.Handler
 	}
@@ -154,7 +154,7 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 	r.Comment = d.opts.Comment
 	r.ReuseRecord = true
-	errHandler := selina.DefaultErrorHanler
+	errHandler := selina.DefaultErrorHandler
 	if d.opts.Handler != nil {
 		errHandler = d.opts.Handler
 	}
