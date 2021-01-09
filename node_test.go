@@ -2,6 +2,7 @@ package selina_test
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
 	"time"
@@ -97,7 +98,7 @@ func TestNodeStop(t *testing.T) {
 	}
 	select {
 	case err := <-stoped:
-		if err != context.Canceled {
+		if !errors.Is(err, context.Canceled) {
 			t.Fatalf("Start() err = %v", err)
 		}
 		return

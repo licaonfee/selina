@@ -5,6 +5,7 @@ package remote_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"strings"
 	"testing"
@@ -71,7 +72,7 @@ func TestRemote(t *testing.T) {
 				cancel()
 				return nil
 			})
-			if err := eg.Wait(); err != nil && err != context.Canceled {
+			if err := eg.Wait(); err != nil && !errors.Is(err, context.Canceled) {
 				t.Errorf("unexpected error = %v", err)
 			}
 			got := recv.String()

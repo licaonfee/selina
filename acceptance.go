@@ -47,7 +47,7 @@ func ATPipelineContextCancel(p Pipeliner) error {
 		cancel()
 	}()
 	err := p.Run(ctx)
-	if err != context.Canceled {
+	if !errors.Is(err, context.Canceled) {
 		return err
 	}
 	return nil
