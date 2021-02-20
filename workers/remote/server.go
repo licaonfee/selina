@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"sync"
 
 	"github.com/licaonfee/selina"
 	"google.golang.org/grpc"
@@ -55,6 +56,8 @@ func (s *Server) Push(msg []byte) error {
 //Process implements selina.Worker interface
 func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp error) {
 	defer close(args.Output)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	listener, err := net.Listen(s.opts.Network, s.opts.Address)
 	if err != nil {
 		return err
@@ -62,9 +65,16 @@ func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp err
 
 	gserver := grpc.NewServer()
 	RegisterWorkerServer(gserver, s)
-	//TODO: handle Server error
+	var cerr error
+	defer func() {
+		wg.Wait()
+		if errp == nil && cerr != nil {
+			errp = cerr
+		}
+	}()
 	go func() {
-		errp = gserver.Serve(listener)
+		cerr = gserver.Serve(listener)
+		wg.Done()
 	}()
 	defer gserver.GracefulStop()
 	for {
