@@ -25,6 +25,7 @@ type EncoderOptions struct {
 	ReadFormat selina.Unmarshaler
 }
 
+// Encoder transform messages into csv text
 type Encoder struct {
 	opts EncoderOptions
 }
@@ -138,6 +139,7 @@ type DecoderOptions struct {
 	Codec   selina.Marshaler
 }
 
+// Decoder parse csv lines into key value pairs
 type Decoder struct {
 	opts DecoderOptions
 }

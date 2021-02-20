@@ -9,19 +9,21 @@ import (
 	"github.com/spf13/afero"
 )
 
+// WriterOptions configuration for a Writer worker
 type WriterOptions struct {
 	Filename   Filenamer
 	Fs         afero.Fs
 	AddNewLine bool
 	BufferSize int
 	Mode       os.FileMode
-	Hanlder    selina.ErrorHandler
+	Handler    selina.ErrorHandler
 }
 
 type Writer struct {
 	opts WriterOptions
 }
 
+// Process implents selina.Worker interface
 func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer close(args.Output)
 	var currFname string
@@ -38,8 +40,8 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 		}
 	}()
 	errHandler := selina.DefaultErrorHandler
-	if w.opts.Hanlder != nil {
-		errHandler = w.opts.Hanlder
+	if w.opts.Handler != nil {
+		errHandler = w.opts.Handler
 	}
 	for {
 		select {
@@ -80,6 +82,7 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 	}
 }
 
+// NewWriter create a new writer with given options
 func NewWriter(opts WriterOptions) *Writer {
 	return &Writer{opts: opts}
 }

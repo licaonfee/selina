@@ -18,7 +18,7 @@ func populateFs(files map[string]string) afero.Fs {
 	m := afero.NewMemMapFs()
 	for name, data := range files {
 		f, _ := m.Create(name)
-		f.WriteString(data)
+		_, _ = f.WriteString(data)
 	}
 	return m
 }
@@ -81,7 +81,7 @@ func TestReaderProcess(t *testing.T) {
 				Fs: populateFs(map[string]string{
 					"/tmp/my.file": "some data\nin the file"}),
 				SplitFunc: bufio.ScanLines,
-				Hanlder:   func(error) bool { return true },
+				Handler:   func(error) bool { return true },
 			},
 			in:      []string{"/tmp/my.file"},
 			want:    []string{},

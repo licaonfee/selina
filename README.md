@@ -18,6 +18,7 @@ Unstable API, please use go modules
     - [Pipeline](#pipeline)
     - [Node](#node)
     - [Worker](#worker)
+    - [Codec](#codec)
   - [Command line Usage](#command-line-usage)
   - [Autocompletion](#autocompletion)
     - [Get json-shema](#get-json-shema)
@@ -79,26 +80,26 @@ func main(){
 }
 ```
 
-With te previous code you get a .dot graph 
+With te previous code you get a .dot graph
 
 ```dot
 digraph {
-	rankdir=LR;
-	X0001FXACQQKSTZV3SGXZPF3C9C[label="Filter"];
-	X0001FXACQQKSTZV3SGY4YSE6NX[label="Write"];
-	X0001FXACQQKSTZV3SGY2XQMB1X[label="Custom"];
-	X0001FXACQQKSTZV3SGY5QMFJ0Q[label="Store"];
-	X0001FXACQQKSTZV3SGXTVX3MPP[label="Read"];
-	X0001FXACQQKSTZV3SGXXXA43EF[label="CSV"];
-	X0001FXACQQKSTZV3SGXTVX3MPP -> X0001FXACQQKSTZV3SGXXXA43EF [label="count=10000,bytes=1MiB"];
-	X0001FXACQQKSTZV3SGXTVX3MPP -> X0001FXACQQKSTZV3SGXZPF3C9C [label="count=10000,bytes=1MiB"];
-	X0001FXACQQKSTZV3SGXXXA43EF -> X0001FXACQQKSTZV3SGY4YSE6NX [label="count=10000,bytes=1MiB"];
-	X0001FXACQQKSTZV3SGXZPF3C9C -> X0001FXACQQKSTZV3SGY2XQMB1X [label="count=10000,bytes=1MiB"];
-	X0001FXACQQKSTZV3SGY2XQMB1X -> X0001FXACQQKSTZV3SGY5QMFJ0Q [label="count=10000,bytes=1MiB"];
+  rankdir=LR;
+  X0001FXACQQKSTZV3SGXZPF3C9C[label="Filter"];
+  X0001FXACQQKSTZV3SGY4YSE6NX[label="Write"];
+  X0001FXACQQKSTZV3SGY2XQMB1X[label="Custom"];
+  X0001FXACQQKSTZV3SGY5QMFJ0Q[label="Store"];
+  X0001FXACQQKSTZV3SGXTVX3MPP[label="Read"];
+  X0001FXACQQKSTZV3SGXXXA43EF[label="CSV"];
+  X0001FXACQQKSTZV3SGXTVX3MPP -> X0001FXACQQKSTZV3SGXXXA43EF [label="count=10000,bytes=1MiB"];
+  X0001FXACQQKSTZV3SGXTVX3MPP -> X0001FXACQQKSTZV3SGXZPF3C9C [label="count=10000,bytes=1MiB"];
+  X0001FXACQQKSTZV3SGXXXA43EF -> X0001FXACQQKSTZV3SGY4YSE6NX [label="count=10000,bytes=1MiB"];
+  X0001FXACQQKSTZV3SGXZPF3C9C -> X0001FXACQQKSTZV3SGY2XQMB1X [label="count=10000,bytes=1MiB"];
+  X0001FXACQQKSTZV3SGY2XQMB1X -> X0001FXACQQKSTZV3SGY5QMFJ0Q [label="count=10000,bytes=1MiB"];
 }
 ```
 
-Renderized with graphviz 
+Renderized with graphviz
 
 ![graph](docs/graph.png)
 
@@ -142,6 +143,10 @@ Contains methods to pass data from Worker to Worker and get metrics
 ### Worker
 
 All data Extraction/Transformation/Load logic is encapsulated in a Worker instance
+
+### Codec
+
+Most of workers receive an optional configuration `Codec` that implements ``Marshaler``/``Unmarshaler`` interfaces, by default `msgmapck` is used if no `Codec` is provided
 
 ## Command line Usage
 

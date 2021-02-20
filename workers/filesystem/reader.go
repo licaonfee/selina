@@ -21,15 +21,17 @@ type Filenamer interface {
 // Filenamer with just a func()string
 type FilenameFunc func() string
 
+// Filename return a filename to be opened by worker
 func (f FilenameFunc) Filename([]byte) string {
 	return f()
 }
 
+// ReaderOptions configuration for Reader worker
 type ReaderOptions struct {
 	Fs        afero.Fs
 	SplitFunc bufio.SplitFunc
 	Filename  Filenamer
-	Hanlder   selina.ErrorHandler
+	Handler   selina.ErrorHandler
 }
 
 // Reader for every message received it call Filenamer.Filename(msg)
@@ -39,6 +41,7 @@ type Reader struct {
 	opts ReaderOptions
 }
 
+// Process see selina.Worker
 func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer close(args.Output)
 	var currFile io.Closer
@@ -51,8 +54,8 @@ func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		}
 	}()
 	errHandler := selina.DefaultErrorHandler
-	if r.opts.Hanlder != nil {
-		errHandler = r.opts.Hanlder
+	if r.opts.Handler != nil {
+		errHandler = r.opts.Handler
 	}
 	for {
 		select {
@@ -97,6 +100,7 @@ func readFile(ctx context.Context, sc *bufio.Scanner, out chan<- []byte) error {
 	return nil
 }
 
+// NewReader create a new reader with goven options
 func NewReader(opts ReaderOptions) *Reader {
 	return &Reader{opts: opts}
 }

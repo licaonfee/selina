@@ -26,7 +26,7 @@ type ReaderOptions struct {
 	AutoClose bool
 	//Default is ScanLines
 	SplitFunc bufio.SplitFunc
-	//ReadFormat proccess every data point with this function
+	//ReadFormat process every data point with this function
 	//default is nil , raw message is passed to WriteFormat
 	ReadFormat selina.Unmarshaler
 	//WriteFormat by default is json.Marshal

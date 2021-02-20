@@ -92,7 +92,7 @@ func TestWriterProcess(t *testing.T) {
 			opts: fs.WriterOptions{
 				Filename: nameFromBytes{},
 				Fs:       afero.NewRegexpFs(afero.NewMemMapFs(), regexp.MustCompile(`\.file$`)),
-				Hanlder:  func(error) bool { return true },
+				Handler:  func(error) bool { return true },
 			},
 			in: []string{"/tmp/my.file", "/tmp/denied.txt", "/tmp/your.file"},
 			want: populateFs(map[string]string{
