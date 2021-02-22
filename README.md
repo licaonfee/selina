@@ -146,7 +146,7 @@ All data Extraction/Transformation/Load logic is encapsulated in a Worker instan
 
 ### Codec
 
-Most of workers receive an optional configuration `Codec` that implements ``Marshaler``/``Unmarshaler`` interfaces, by default `msgmapck` is used if no `Codec` is provided
+Most of workers receive an optional configuration `Codec` that implements ``Marshaler``/``Unmarshaler`` interfaces, by default [msgpack](https://msgpack.org/)  is used if no `Codec` is provided
 
 ## Command line Usage
 
