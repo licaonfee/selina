@@ -18,6 +18,7 @@ Unstable API, please use go modules
     - [Pipeline](#pipeline)
     - [Node](#node)
     - [Worker](#worker)
+    - [Conventions for workers](#conventions-for-workers)
     - [Codec](#codec)
   - [Command line Usage](#command-line-usage)
   - [Autocompletion](#autocompletion)
@@ -143,6 +144,14 @@ Contains methods to pass data from Worker to Worker and get metrics
 ### Worker
 
 All data Extraction/Transformation/Load logic is encapsulated in a Worker instance
+
+### Conventions for workers
+
+- A nil input channel is only for workers that produces data if a worker does not allow nil input channel it must returns `selina.ErrNilUpstream`
+- Workers must close its output channel when finish their job
+- A closed input channel must gracefully finalize worker
+- Pipeline finalization is triggered vía channel closing
+- All workers must handle context cancellation
 
 ### Codec
 
