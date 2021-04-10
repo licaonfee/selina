@@ -41,7 +41,7 @@ func TestWriterProcessNilWriter(t *testing.T) {
 	opts := text.WriterOptions{Writer: nil}
 	tr := text.NewWriter(opts)
 	in := make(chan []byte)
-	out := make(chan []byte) //unbuffered so, process wait forever
+	out := make(chan []byte) // unbuffered so, process wait forever
 	args := selina.ProcessArgs{Input: in, Output: out}
 	err := tr.Process(context.Background(), args)
 	if err != text.ErrNilWriter {

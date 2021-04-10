@@ -11,11 +11,11 @@ import (
 
 var _ selina.Worker = (*Writer)(nil)
 
-//WriterOptions customize Writer
+// WriterOptions customize Writer
 type WriterOptions struct {
-	//Writer io.Writer where data will be written
+	// Writer io.Writer where data will be written
 	Writer io.Writer
-	//AutoClose when true and Writer implements io.Closer
+	// AutoClose when true and Writer implements io.Closer
 	// io.Closer.Close() method will be called on finalization
 	AutoClose   bool
 	SkipNewLine bool
@@ -23,7 +23,7 @@ type WriterOptions struct {
 	Codec       selina.Marshaler
 }
 
-//Check if a combination of options is valid
+// Check if a combination of options is valid
 func (o WriterOptions) Check() error {
 	if o.Writer == nil {
 		return ErrNilWriter
@@ -31,7 +31,7 @@ func (o WriterOptions) Check() error {
 	return nil
 }
 
-//Writer a Worker that write data to a given io.Writer in text format
+// Writer a Worker that write data to a given io.Writer in text format
 type Writer struct {
 	opts WriterOptions
 }
@@ -46,15 +46,15 @@ func (t *Writer) cleanup() error {
 	return nil
 }
 
-//ErrNilWriter returned when a nil io.Writer is provided
+// ErrNilWriter returned when a nil io.Writer is provided
 var ErrNilWriter = errors.New("nil io.Writer provided to TextWriter")
 
-//Process implements Worker interface
+// Process implements Worker interface
 func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
 		close(args.Output)
 		cerr := t.cleanup()
-		if err == nil { //if an error occurred not override it
+		if err == nil { // if an error occurred not override it
 			err = cerr
 		}
 	}()
@@ -98,7 +98,7 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-//NewWriter create a new Writer with given options
+// NewWriter create a new Writer with given options
 func NewWriter(opts WriterOptions) *Writer {
 	w := &Writer{opts: opts}
 	return w

@@ -12,28 +12,28 @@ import (
 
 var _ selina.Worker = (*Reader)(nil)
 
-//ErrNilReader is returned when a nil io.Reader interface is provided
+// ErrNilReader is returned when a nil io.Reader interface is provided
 var (
 	ErrNilReader = errors.New("nil io.Reader provided to TextReader")
 )
 
-//ReaderOptions customize Reader
+// ReaderOptions customize Reader
 type ReaderOptions struct {
-	//Reader from which data is readed
+	// Reader from which data is readed
 	Reader io.Reader
-	//AutoClose if its true and Reader implements io.Closer
-	//io.Reader.Close() method is called on Process finish
+	// AutoClose if its true and Reader implements io.Closer
+	// io.Reader.Close() method is called on Process finish
 	AutoClose bool
-	//Default is ScanLines
+	// Default is ScanLines
 	SplitFunc bufio.SplitFunc
-	//ReadFormat process every data point with this function
-	//default is nil , raw message is passed to WriteFormat
+	// ReadFormat process every data point with this function
+	// default is nil , raw message is passed to WriteFormat
 	ReadFormat selina.Unmarshaler
-	//WriteFormat by default is json.Marshal
+	// WriteFormat by default is json.Marshal
 	WriteFormat selina.Marshaler
 }
 
-//Check if a combination of options is valid
+// Check if a combination of options is valid
 func (o ReaderOptions) Check() error {
 	if o.Reader == nil {
 		return ErrNilReader
@@ -41,7 +41,7 @@ func (o ReaderOptions) Check() error {
 	return nil
 }
 
-//Reader a worker that read data from an io.Reader
+// Reader a worker that read data from an io.Reader
 type Reader struct {
 	opts ReaderOptions
 }
@@ -56,12 +56,12 @@ func (t *Reader) cleanup() error {
 	return nil
 }
 
-//Process implements Worker interface
+// Process implements Worker interface
 func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
 		close(args.Output)
 		cerr := t.cleanup()
-		if err == nil { //if an error occurred not override it
+		if err == nil { // if an error occurred not override it
 			err = cerr
 		}
 	}()
@@ -104,7 +104,7 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	return nil
 }
 
-//NewReader create a new Reader with given options
+// NewReader create a new Reader with given options
 func NewReader(opts ReaderOptions) *Reader {
 	t := Reader{opts: opts}
 	return &t
