@@ -10,7 +10,7 @@ require (
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2
-	github.com/google/gops v0.3.17
+	github.com/google/gops v0.3.18
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.0
