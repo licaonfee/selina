@@ -10,7 +10,7 @@ require (
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2
-	github.com/google/gops v0.3.18
+	github.com/google/gops v0.3.19
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.2
@@ -24,7 +24,6 @@ require (
 	github.com/proullon/ramsql v0.0.0-20181213202341-817cee58a244
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.6.0
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
