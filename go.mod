@@ -3,7 +3,7 @@ module github.com/licaonfee/selina
 go 1.15
 
 require (
-	github.com/ClickHouse/clickhouse-go v1.4.8
+	github.com/ClickHouse/clickhouse-go v1.5.2
 	github.com/alecthomas/jsonschema v0.0.0-20210301060011-54c507b6f074
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/frankban/quicktest v1.11.3 // indirect
