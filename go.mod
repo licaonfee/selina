@@ -23,7 +23,7 @@ require (
 	github.com/poy/onpar v1.1.2 // indirect
 	github.com/proullon/ramsql v0.0.0-20181213202341-817cee58a244
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/spf13/afero v1.8.0
+	github.com/spf13/afero v1.8.1
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1
