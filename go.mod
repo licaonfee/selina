@@ -24,12 +24,12 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/frankban/quicktest v1.14.2 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/poy/onpar v1.1.2 // indirect
+	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	google.golang.org/genproto v0.0.0-20220228155957-1da8797a5878 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
