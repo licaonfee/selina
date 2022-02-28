@@ -1,6 +1,6 @@
 module github.com/licaonfee/selina
 
-go 1.16
+go 1.15
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
