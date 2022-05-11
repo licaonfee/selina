@@ -5,6 +5,7 @@ import (
 
 	"github.com/licaonfee/selina"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var _ selina.Worker = (*Client)(nil)
@@ -22,7 +23,7 @@ type Client struct {
 //Process implements selina.Worker interface
 func (c *Client) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
-	conn, err := grpc.DialContext(ctx, c.opts.Address, grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, c.opts.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
