@@ -14,7 +14,7 @@ require (
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/proullon/ramsql v0.0.0-20211120092837-c8d0a408b939
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/spf13/afero v1.8.1
+	github.com/spf13/afero v1.8.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
