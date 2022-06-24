@@ -28,7 +28,7 @@ func (o CronOptions) Check() error {
 	return err
 }
 
-//Cron send an specifi message at scheduled intervals
+//Cron send an specific message at scheduled intervals
 type Cron struct {
 	opts CronOptions
 }

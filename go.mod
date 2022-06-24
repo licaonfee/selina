@@ -10,6 +10,7 @@ require (
 	github.com/google/gops v0.3.23
 	github.com/lib/pq v1.10.6
 	github.com/licaonfee/magiccol v1.1.0
+	github.com/licaonfee/tserie v0.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/proullon/ramsql v0.0.0-20220319205533-582afa8a5528
@@ -17,7 +18,7 @@ require (
 	github.com/spf13/afero v1.8.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	golang.org/x/net v0.0.0-20220524220425-1d687d428aca
-	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0
