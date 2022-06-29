@@ -64,7 +64,7 @@ func loadDefinition(definition io.Reader, availableNodes map[string]NewFacility)
 	dec.SetStrict(true)
 	var defined PipeDefinition
 	if err := dec.Decode(&defined); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode YAML %w", err)
 	}
 
 	pipeNodes := make([]*selina.Node, 0, len(defined.NodeDefs))
@@ -74,8 +74,11 @@ func loadDefinition(definition io.Reader, availableNodes map[string]NewFacility)
 			return nil, errors.New("unavailable type")
 		}
 		facility := facFunc()
+		n.Args["read_format"] = n.ReadFormat
+		n.Args["write_format"] = n.WriteFormat
 		if err := mapstructure.Decode(n.Args, &facility); err != nil {
-			return nil, err
+			fmt.Printf("%v\n", n.Args)
+			return nil, fmt.Errorf("decode struct %w", err)
 		}
 		node, err := facility.Make(n.Name)
 		if err != nil {
@@ -99,7 +102,7 @@ func main() {
 	filename := flag.String("file", "", "pipeline definition file use - to stdin ")
 	timeout := flag.Duration("timeout", time.Duration(0), "maximum time to run, default limitless")
 	printSchema := flag.Bool("schema", false, "print jsonschema for yaml LSP")
-
+	log.SetFlags(log.Llongfile | log.LstdFlags)
 	flag.Parse()
 	var availableNodes = map[string]NewFacility{
 		"read_file":  NewReadFile,
@@ -111,6 +114,7 @@ func main() {
 		"cron":       NewCron,
 		"remote":     NewRemote,
 		"random":     NewRandom,
+		"time_serie": NewTimeSerie,
 	}
 	if *printSchema {
 		fmt.Println(schema(availableNodes))
@@ -152,11 +156,13 @@ func main() {
 		<-s
 		cancel()
 	}()
-	if err := p.Run(ctx); err != nil {
-		switch {
-		case errors.Is(err, context.DeadlineExceeded):
-			log.Fatalf("timeout after %v", *timeout)
-		}
+	err = p.Run(ctx)
+	switch {
+	case err == nil:
+	case errors.Is(err, context.DeadlineExceeded):
+		log.Fatalf("timeout after %v", *timeout)
+	default:
 		log.Fatal(err)
 	}
+
 }

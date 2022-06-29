@@ -112,6 +112,7 @@ By default selina has this workers implemented
 - csv.Decoder : Transform csv data into json
 - custom.Function : Allow to execute custom functions into a pipeline node
 - ops.Cron : Allow scheduled messages into a pipeline
+- ops.TimeSerie: Generate time series data
 - random.Random : Generate random byte slices
 - regex.Filter : Filter data using a regular expresion
 - remote.Server : Listen for remote data

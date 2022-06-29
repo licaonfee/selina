@@ -2,6 +2,7 @@ package selina
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 )
 
@@ -50,3 +51,9 @@ type Unmarshaler func([]byte, interface{}) error
 
 // Marshaler is a function type compatible with json.Marshal
 type Marshaler func(interface{}) ([]byte, error)
+
+//Default Marshaler and Unmarshaler
+var (
+	DefaultUnmarshaler = json.Unmarshal
+	DefaultMarshaler   = json.Marshal
+)
