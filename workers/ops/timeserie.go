@@ -2,11 +2,11 @@ package ops
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/tserie"
-	"github.com/vmihailenco/msgpack"
 )
 
 var _ selina.Worker = (*TimeSerie)(nil)
@@ -30,7 +30,7 @@ func (t *TimeSerie) Process(ctx context.Context, args selina.ProcessArgs) error 
 	defer close(args.Output)
 	ts := tserie.NewTimeIterator(t.opts.Start, t.opts.Stop, t.opts.Step, t.opts.Generator)
 	if t.opts.WriteFormat == nil {
-		t.opts.WriteFormat = msgpack.Marshal
+		t.opts.WriteFormat = json.Marshal
 	}
 	for {
 		select {

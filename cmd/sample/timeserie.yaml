@@ -1,0 +1,15 @@
+# This pipeline generate a random timeserie 
+---
+nodes:
+  - name: generate
+    type: time_serie
+    args:
+      start: "2022-01-01T00:00:00Z"
+      stop: "2022-01-01T23:59:59Z"
+      step: "1h"
+  - name: write
+    type: write_file
+    args:
+      filename: serie.txt
+      ifexists: overwrite
+      codec: raw

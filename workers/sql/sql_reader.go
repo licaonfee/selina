@@ -3,7 +3,6 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"github.com/licaonfee/magiccol"
@@ -73,7 +72,7 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		close(in)
 		input = in
 	}
-	codec := json.Marshal
+	codec := selina.DefaultMarshaler
 	if s.opts.WriteFormat != nil {
 		codec = s.opts.WriteFormat
 	}

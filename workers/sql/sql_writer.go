@@ -3,7 +3,6 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 
 	"github.com/licaonfee/selina"
@@ -59,7 +58,7 @@ func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 	if err != nil {
 		return err
 	}
-	codec := json.Unmarshal
+	codec := selina.DefaultUnmarshaler
 	if s.opts.ReadFormat != nil {
 		codec = s.opts.ReadFormat
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -9,9 +10,12 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/licaonfee/selina/workers/random"
 	"github.com/licaonfee/selina/workers/remote"
+	"github.com/licaonfee/tserie"
+	"github.com/vmihailenco/msgpack"
 
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/csv"
@@ -42,10 +46,12 @@ func newMakeError(f interface{}, err error) *MakeError {
 
 //GeneralOptions will not use jsonschema automatically because Type is determined in excution time
 type GeneralOptions struct {
-	Name  string                 `yaml:"name"`
-	Type  string                 `yaml:"type"`
-	Args  map[string]interface{} `yaml:"args"`
-	Fetch []string               `yaml:"fetch"`
+	Name        string                 `yaml:"name"`
+	Type        string                 `yaml:"type"`
+	Args        map[string]interface{} `yaml:"args"`
+	ReadFormat  string                 `yaml:"read_format"`
+	WriteFormat string                 `yaml:"write_format"`
+	Fetch       []string               `yaml:"fetch"`
 }
 
 type NewFacility func() NodeFacility
@@ -126,11 +132,23 @@ func (w *WriteFile) Make(name string) (*selina.Node, error) {
 	if w.Mode == 0 {
 		w.Mode = 0600
 	}
+	var codec selina.Marshaler
+	switch "raw" {
+	case "json":
+		codec = json.Marshal
+	case "msgpack":
+		codec = msgpack.Marshal
+	case "raw", "":
+		codec = nil
+	default:
+		return nil, newMakeError(w, errors.New("invalid codec"))
+	}
 	f, err := os.OpenFile(w.Filename, flags, w.Mode)
 	if err != nil {
 		return nil, newMakeError(w, err)
 	}
-	opts := text.WriterOptions{Writer: f, AutoClose: true, BufferSize: w.BufferSize}
+
+	opts := text.WriterOptions{Writer: f, AutoClose: true, BufferSize: w.BufferSize, Codec: codec}
 	if err := opts.Check(); err != nil {
 		return nil, newMakeError(w, err)
 	}
@@ -300,4 +318,43 @@ func (r *Random) Make(name string) (*selina.Node, error) {
 
 func NewRandom() NodeFacility {
 	return &Random{}
+}
+
+var _ NodeFacility = (*TimeSerie)(nil)
+
+type TimeSerie struct {
+	Start  string `mapstructure:"start" json:"start"`
+	Stop   string `mapstructure:"stop" json:"stop"`
+	Format string `mapstrcuture:"format" json:"format"`
+	Step   string `mapstructure:"step" json:"step"`
+}
+
+func (t *TimeSerie) Make(name string) (*selina.Node, error) {
+	d, err := time.ParseDuration(t.Step)
+	if err != nil {
+		return nil, fmt.Errorf("step %w", err)
+	}
+	start, err := time.Parse(t.Format, t.Start)
+	if err != nil {
+		return nil, fmt.Errorf("start %w", err)
+	}
+	stop, err := time.Parse(t.Format, t.Stop)
+	if err != nil {
+		return nil, fmt.Errorf("stop %w", err)
+	}
+	opts := ops.TimeSerieOptions{
+		Start:       start,
+		Stop:        stop,
+		Step:        d,
+		Generator:   tserie.Normal(1, 0),
+		WriteFormat: json.Marshal,
+	}
+	w := ops.NewTimeSerie(opts)
+	return selina.NewNode(name, w), nil
+}
+
+func NewTimeSerie() NodeFacility {
+	return &TimeSerie{
+		Format: time.RFC3339,
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"encoding/json"
 	"io"
 	"sort"
 	"strconv"
@@ -47,7 +46,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 
 	var headerWriten bool
-	rf := json.Unmarshal
+	rf := selina.DefaultUnmarshaler
 	if e.opts.ReadFormat != nil {
 		rf = e.opts.ReadFormat
 	}
@@ -160,7 +159,7 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	if d.opts.Handler != nil {
 		errHandler = d.opts.Handler
 	}
-	codec := json.Marshal
+	codec := selina.DefaultMarshaler
 	if d.opts.Codec != nil {
 		codec = d.opts.Codec
 	}

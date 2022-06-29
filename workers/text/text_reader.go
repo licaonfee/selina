@@ -3,7 +3,6 @@ package text
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 
@@ -72,7 +71,7 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	if t.opts.SplitFunc != nil {
 		sc.Split(t.opts.SplitFunc)
 	}
-	wf := json.Marshal
+	wf := selina.DefaultMarshaler
 	if t.opts.WriteFormat != nil {
 		wf = t.opts.WriteFormat
 	}

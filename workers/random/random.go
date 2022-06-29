@@ -9,18 +9,18 @@ import (
 
 var _ selina.Worker = (*Random)(nil)
 
-//Options to customize Ramdom generator
+// Options to customize Ramdom generator
 type Options struct {
-	//Len how many random bytes will contain []byte
+	// Len how many random bytes will contain []byte
 	Len int
 }
 
-//Random generate random []byte slices
+// Random generate random []byte slices
 type Random struct {
 	opts Options
 }
 
-//Process implements Worker interface
+// Process implements Worker interface
 func (r *Random) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 
