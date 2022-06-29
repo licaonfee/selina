@@ -2,6 +2,8 @@ package ops
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/licaonfee/selina"
@@ -25,12 +27,16 @@ type CronOptions struct {
 func (o CronOptions) Check() error {
 	p := cron.NewParser(cronDefaultOptions)
 	_, err := p.Parse(o.Spec)
-	return err
+	if err != nil {
+		return fmt.Errorf("%w %s", ErrBadCronSpec, err)
+	}
+	return nil
 }
 
 //Cron send an specific message at scheduled intervals
 type Cron struct {
 	opts CronOptions
+	id   cron.EntryID
 }
 
 var globalCron *cron.Cron
@@ -42,6 +48,9 @@ func createCron() {
 	globalCron.Start()
 }
 
+// ErrBadCronSpec is returned when an job spec is not parseable
+var ErrBadCronSpec = errors.New("bad cron spec")
+
 //Process add a job scec, any message received will be discarded
 // when input is closed this worker return nil
 func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
@@ -50,17 +59,13 @@ func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
 		return err
 	}
 	initCron.Do(createCron)
-	tick := make(chan struct{})
-	bye := make(chan struct{})
+	tick := make(chan struct{}, 1)
 	id, _ := globalCron.AddFunc(c.opts.Spec, func() {
-		select {
-		case tick <- struct{}{}:
-		case <-bye:
-		}
+		tick <- struct{}{}
 	})
+	c.id = id
 	defer func() {
 		globalCron.Remove(id)
-		close(bye)
 	}()
 	for {
 		select {
