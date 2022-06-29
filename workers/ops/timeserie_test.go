@@ -43,6 +43,7 @@ func TestTimeSerieProcessCloseOutput(t *testing.T) {
 }
 
 func TestTimeSerieProcess(t *testing.T) {
+	var marshalError = errors.New("marshal error")
 	test := []struct {
 		name    string
 		opts    ops.TimeSerieOptions
@@ -60,6 +61,19 @@ func TestTimeSerieProcess(t *testing.T) {
 			},
 			want: []string{`{"Time":"2022-01-01T01:01:00Z","Value":1}`,
 				`{"Time":"2022-01-01T01:02:00Z","Value":1}`},
+			wantErr: nil,
+		},
+		{
+			name: "Error marshal",
+			opts: ops.TimeSerieOptions{
+				Start:       time.Date(2022, 1, 1, 1, 0, 0, 0, time.UTC),
+				Stop:        time.Date(2022, 1, 1, 1, 2, 0, 0, time.UTC),
+				Step:        time.Minute,
+				Generator:   func(t time.Time) float64 { return 1.0 },
+				WriteFormat: func(i interface{}) ([]byte, error) { return nil, marshalError },
+			},
+			want:    []string{},
+			wantErr: marshalError,
 		},
 	}
 
@@ -71,8 +85,8 @@ func TestTimeSerieProcess(t *testing.T) {
 			args := selina.ProcessArgs{Input: input, Output: output}
 
 			gotErr := ts.Process(context.Background(), args)
-			if gotErr != tt.wantErr && errors.Is(gotErr, tt.wantErr) {
-				t.Errorf("Process() err = %v ", gotErr)
+			if !errors.Is(gotErr, tt.wantErr) {
+				t.Errorf("Process() err = %v , wantErr = %v ", gotErr, tt.wantErr)
 			}
 			got := selina.ChannelAsSlice(output)
 			if !reflect.DeepEqual(got, tt.want) {
