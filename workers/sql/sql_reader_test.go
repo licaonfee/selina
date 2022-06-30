@@ -3,6 +3,7 @@ package sql_test
 import (
 	"context"
 	dbsql "database/sql"
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -24,7 +25,6 @@ const ramsqlDriver = "ramsql"
 
 func setupDB(name string) {
 	db, err := dbsql.Open(ramsqlDriver, name)
-
 	if err != nil {
 		panic(err)
 	}
@@ -39,6 +39,7 @@ func setupDB(name string) {
 func TestSQLReader_Process(t *testing.T) {
 	mapper := magiccol.DefaultMapper()
 	mapper.Match(magiccol.ColumnNameAs("name", reflect.TypeOf("")))
+	badcodec := func(any) ([]byte, error) { return nil, errors.New("bad codec") }
 	tests := []struct {
 		name    string
 		opts    sql.ReaderOptions
@@ -67,6 +68,18 @@ func TestSQLReader_Process(t *testing.T) {
 			name:    "Success",
 			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "success", Query: "SELECT name FROM members;", Mapper: mapper},
 			want:    []string{`{"name":"selina"}`, `{"name":"lizbeth"}`},
+			wantErr: false,
+		},
+		{
+			name:    "codec error",
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "codec", Query: "SELECT name FROM members;", Mapper: mapper, WriteFormat: badcodec},
+			want:    []string{},
+			wantErr: true,
+		},
+		{
+			name:    "default mapper",
+			opts:    sql.ReaderOptions{Driver: ramsqlDriver, ConnStr: "default_mapper", Query: "SELECT name FROM members;", Mapper: nil},
+			want:    []string{"{\"name\":\"c2VsaW5h\"}", "{\"name\":\"bGl6YmV0aA==\"}"},
 			wantErr: false,
 		},
 	}
