@@ -59,7 +59,9 @@ func TestTimeSerieProcess(t *testing.T) {
 				Generator:   func(t time.Time) float64 { return 1.0 },
 				WriteFormat: json.Marshal,
 			},
-			want: []string{`{"Time":"2022-01-01T01:01:00Z","Value":1}`,
+			want: []string{
+				`{"Time":"2022-01-01T01:00:00Z","Value":1}`,
+				`{"Time":"2022-01-01T01:01:00Z","Value":1}`,
 				`{"Time":"2022-01-01T01:02:00Z","Value":1}`},
 			wantErr: nil,
 		},

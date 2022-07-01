@@ -17,6 +17,10 @@ import (
 )
 
 func TestReaderProcess(t *testing.T) {
+	errBadMarshal := errors.New("marshaler")
+	errBadUnmarshal := errors.New("unmarshaler")
+	badUnmarshaler := func([]byte, any) error { return errBadUnmarshal }
+	badMarshaler := func(any) ([]byte, error) { return nil, errBadMarshal }
 	tests := []struct {
 		name    string
 		data    []string
@@ -66,7 +70,30 @@ func TestReaderProcess(t *testing.T) {
 			want:    []string{`{"age":25,"name":"foo"}`, `{"age":26,"name":"foo"}`, `{"age":27,"name":"foo"}`},
 			wantErr: nil,
 		},
+		{
+			name: "bad marshaler",
+			data: []string{`{"name":"foo","age":25}` + "\n", `{"name":"foo","age":26}` + "\n", `{"name":"foo","age":27}` + "\n"},
+			opts: text.ReaderOptions{
+				SplitFunc:   bufio.ScanLines,
+				ReadFormat:  json.Unmarshal,
+				WriteFormat: badMarshaler,
+			},
+			want:    []string{},
+			wantErr: errBadMarshal,
+		},
+		{
+			name: "bad unmarshaler",
+			data: []string{`{"name":"foo","age":25}` + "\n", `{"name":"foo","age":26}` + "\n", `{"name":"foo","age":27}` + "\n"},
+			opts: text.ReaderOptions{
+				SplitFunc:   bufio.ScanLines,
+				ReadFormat:  badUnmarshaler,
+				WriteFormat: json.Marshal,
+			},
+			want:    []string{},
+			wantErr: errBadUnmarshal,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var r io.Reader
@@ -79,7 +106,7 @@ func TestReaderProcess(t *testing.T) {
 			output := make(chan []byte, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			err := w.Process(context.Background(), args)
-			if err != tt.wantErr && !errors.As(err, &tt.wantErr) {
+			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("Process() err = %v , want = %v ", err, tt.wantErr)
 			}
 			got := selina.ChannelAsSlice(output)

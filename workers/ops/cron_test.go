@@ -2,7 +2,6 @@ package ops_test
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -46,7 +45,7 @@ func TestCronProcess(t *testing.T) {
 			name:    "Invalid spec",
 			opts:    ops.CronOptions{Spec: ""},
 			want:    []string{},
-			wantErr: fmt.Errorf("empty spec string"),
+			wantErr: ops.ErrBadCronSpec,
 		},
 		{
 			name:    "Tick message",
@@ -62,6 +61,13 @@ func TestCronProcess(t *testing.T) {
 			runFor:  time.Second,
 			wantErr: nil,
 		},
+		{
+			name:    "Bad spec",
+			opts:    ops.CronOptions{Spec: "@eberi 1z"},
+			want:    []string{},
+			runFor:  time.Second,
+			wantErr: ops.ErrBadCronSpec,
+		},
 	}
 
 	for _, tt := range tests {
@@ -74,13 +80,14 @@ func TestCronProcess(t *testing.T) {
 				time.Sleep(wait)
 				close(input)
 			}(tt.runFor)
-			if err := c.Process(context.Background(), args); err != tt.wantErr && errors.Is(err, tt.wantErr) {
-				t.Fatalf("Process() err = %v", err)
+			if err := c.Process(context.Background(), args); !errors.Is(err, tt.wantErr) {
+				t.Fatalf("Process() err = %v, wantErr %v", err, tt.wantErr)
 			}
 			got := selina.ChannelAsSlice(output)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}
+
 		})
 	}
 }
