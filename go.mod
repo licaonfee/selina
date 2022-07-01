@@ -10,7 +10,7 @@ require (
 	github.com/google/gops v0.3.23
 	github.com/lib/pq v1.10.6
 	github.com/licaonfee/magiccol v1.1.0
-	github.com/licaonfee/tserie v0.1.0
+	github.com/licaonfee/tserie v0.2.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/proullon/ramsql v0.0.0-20220319205533-582afa8a5528
