@@ -12,7 +12,7 @@ require (
 	github.com/licaonfee/magiccol v1.1.0
 	github.com/licaonfee/tserie v0.2.1
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/oklog/ulid/v2 v2.0.2
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/proullon/ramsql v0.0.0-20220611063022-44f4bf995b39
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.8.2
