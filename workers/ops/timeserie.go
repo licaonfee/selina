@@ -2,7 +2,6 @@ package ops
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/licaonfee/selina"
@@ -30,7 +29,7 @@ func (t *TimeSerie) Process(ctx context.Context, args selina.ProcessArgs) error 
 	defer close(args.Output)
 	ts := tserie.NewTimeIterator(t.opts.Start, t.opts.Stop, t.opts.Step, t.opts.Generator)
 	if t.opts.WriteFormat == nil {
-		t.opts.WriteFormat = json.Marshal
+		t.opts.WriteFormat = selina.DefaultMarshaler
 	}
 	for {
 		select {
