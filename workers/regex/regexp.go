@@ -9,25 +9,25 @@ import (
 
 var _ selina.Worker = (*Filter)(nil)
 
-//FilterOptions customize Filter Worker
+// FilterOptions customize Filter Worker
 type FilterOptions struct {
 	//Pattern valid regular expresion
 	Pattern string
 }
 
-//Check if a combination of options is valid
+// Check if a combination of options is valid
 func (o FilterOptions) Check() error {
 	_, err := regexp.Compile(o.Pattern)
 	return err
 }
 
-//Filter Worker read []byte from input channel, apply regular expresion
+// Filter Worker read []byte from input channel, apply regular expresion
 // if []byte match against Pattern , []byte is sent to output
 type Filter struct {
 	opts FilterOptions
 }
 
-//Process implements Worker interface
+// Process implements Worker interface
 func (r *Filter) Process(ctx context.Context, args selina.ProcessArgs) error {
 	if err := r.opts.Check(); err != nil {
 		return err
@@ -52,7 +52,7 @@ func (r *Filter) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
-//NewFilter create a new Filter Worker with specified options
+// NewFilter create a new Filter Worker with specified options
 func NewFilter(opts FilterOptions) *Filter {
 	return &Filter{opts: opts}
 }

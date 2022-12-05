@@ -14,9 +14,9 @@ func TestClientProcess(t *testing.T) {
 	tests := []struct {
 		name    string
 		opts    remote.ClientOptions
-		wantErr error
+		wantErr any
 	}{
-		//Add test cases
+		// Add test cases
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

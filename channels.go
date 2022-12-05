@@ -6,7 +6,7 @@ import (
 	"context"
 )
 
-//Broadcaster allow to write same value to multiple groutines
+// Broadcaster allow to write same value to multiple groutines
 type Broadcaster struct {
 	DataCounter
 	out     []chan<- []byte
@@ -14,7 +14,7 @@ type Broadcaster struct {
 	running bool
 }
 
-//Broadcast read values from input and send it to output channels
+// Broadcast read values from input and send it to output channels
 func (b *Broadcaster) Broadcast(input <-chan []byte) {
 	b.mtx.Lock()
 	b.running = true
@@ -28,13 +28,13 @@ func (b *Broadcaster) Broadcast(input <-chan []byte) {
 			b.SumData(data)
 		}
 	}
-	//close all channels when all data is readed
+	// close all channels when all data is readed
 	for _, c := range b.out {
 		close(c)
 	}
 }
 
-//Client create an output chanel, it panics if Broadcast is already called
+// Client create an output chanel, it panics if Broadcast is already called
 func (b *Broadcaster) Client() <-chan []byte {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
@@ -46,7 +46,7 @@ func (b *Broadcaster) Client() <-chan []byte {
 	return c
 }
 
-//Receiver join multiple channels into a single output channel
+// Receiver join multiple channels into a single output channel
 // this allow to add new channels after Receive is called
 type Receiver struct {
 	DataCounter
@@ -70,7 +70,7 @@ func (r *Receiver) initChan() {
 	})
 }
 
-//Receive listen to all channels configured with Watch
+// Receive listen to all channels configured with Watch
 // when all channels are closed, output chanel is closed too
 // if there is no channels in watch list , this method returns
 // a nil channel
@@ -84,7 +84,7 @@ func (r *Receiver) Receive() <-chan []byte {
 	return r.out
 }
 
-//Watch add a new channel to be joined
+// Watch add a new channel to be joined
 // Call Watch after Receive is a panic
 func (r *Receiver) Watch(input <-chan []byte) {
 	r.initChan()
@@ -92,8 +92,8 @@ func (r *Receiver) Watch(input <-chan []byte) {
 	go r.pipe(input)
 }
 
-//SendContext try to send msg to output, it returns an error if
-//context is canceled before msg is sent
+// SendContext try to send msg to output, it returns an error if
+// context is canceled before msg is sent
 func SendContext(ctx context.Context, msg []byte, output chan<- []byte) error {
 	select {
 	case output <- msg:

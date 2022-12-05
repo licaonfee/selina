@@ -9,18 +9,18 @@ import (
 
 var _ selina.Worker = (*Function)(nil)
 
-//UserFunction define an user custom modification
-//is safe to return input to avoid allocations
-//if an error is returned Process is aborted
-//a filter can be implemented returning (nil,nil)
+// UserFunction define an user custom modification
+// is safe to return input to avoid allocations
+// if an error is returned Process is aborted
+// a filter can be implemented returning (nil,nil)
 type UserFunction func(input []byte) ([]byte, error)
 
-//FunctionOptions customize a Function Worker
+// FunctionOptions customize a Function Worker
 type FunctionOptions struct {
 	Func UserFunction
 }
 
-//Check if a combination of options is valid
+// Check if a combination of options is valid
 func (o FunctionOptions) Check() error {
 	if o.Func == nil {
 		return ErrNilFunction
@@ -28,15 +28,15 @@ func (o FunctionOptions) Check() error {
 	return nil
 }
 
-//Function allow users to create custom Workers just with a function
+// Function allow users to create custom Workers just with a function
 type Function struct {
 	opts FunctionOptions
 }
 
-//ErrNilFunction a nil UserFunction is provided via FunctionOptions
+// ErrNilFunction a nil UserFunction is provided via FunctionOptions
 var ErrNilFunction = errors.New("nil UserFunction passed to Worker")
 
-//Process implements selina.Workers
+// Process implements selina.Workers
 func (f *Function) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	if err := f.opts.Check(); err != nil {
@@ -64,7 +64,7 @@ func (f *Function) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
-//NewFunction create a Function object with goven options
+// NewFunction create a Function object with goven options
 func NewFunction(opts FunctionOptions) *Function {
 	return &Function{opts: opts}
 }

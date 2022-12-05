@@ -12,7 +12,7 @@ import (
 
 var _ selina.Worker = (*idealWorker)(nil)
 
-//this worker implements all required functionality
+// this worker implements all required functionality
 type idealWorker struct{}
 
 func (i *idealWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
@@ -114,7 +114,7 @@ func (b *badCtxPropagation) Process(ctx context.Context, args selina.ProcessArgs
 	}
 }
 
-//Test if all Acceptance tests pass and fail in correct cases
+// Test if all Acceptance tests pass and fail in correct cases
 func TestAcceptanceTests(t *testing.T) {
 	tests := []struct {
 		name    string

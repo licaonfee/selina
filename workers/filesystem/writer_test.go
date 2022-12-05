@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -34,8 +34,8 @@ func compareFs(a, b afero.Fs) bool {
 			fmt.Printf("%v\n", err)
 			return false
 		}
-		ba, _ := ioutil.ReadAll(af)
-		bb, _ := ioutil.ReadAll(bf)
+		ba, _ := io.ReadAll(af)
+		bb, _ := io.ReadAll(bf)
 		if !reflect.DeepEqual(ba, bb) {
 			fmt.Printf("%s != %s\n", ba, bb)
 			return false

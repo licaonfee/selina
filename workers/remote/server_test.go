@@ -19,7 +19,7 @@ func TestServerProcess(t *testing.T) {
 		opts remote.ServerOptions
 		//for empty use [][]byte{}
 		send    [][]byte
-		wantErr error
+		wantErr any
 	}{
 		{
 			name:    "Success no messages",

@@ -13,26 +13,26 @@ import (
 var _ WorkerServer = (*Server)(nil)
 var _ selina.Worker = (*Server)(nil)
 var (
-	//ErrDiscarded is returned when there is no slots
-	//in process stream
+	// ErrDiscarded is returned when there is no slots
+	// in process stream
 	ErrDiscarded = errors.New("discarded")
 )
 
-//ServerOptions customize Server Worker
+// ServerOptions customize Server Worker
 type ServerOptions struct {
 	Network    string
 	Address    string
 	BufferSize int
 }
 
-//Server receive data from a remote endpoint
+// Server receive data from a remote endpoint
 type Server struct {
 	UnimplementedWorkerServer
 	opts  ServerOptions
 	dataC chan []byte
 }
 
-//Send implements grpc service
+// Send implements grpc service
 func (s *Server) Send(ctx context.Context, msg *Message) (*Error, error) {
 	select {
 	case <-ctx.Done():
@@ -42,8 +42,8 @@ func (s *Server) Send(ctx context.Context, msg *Message) (*Error, error) {
 	}
 }
 
-//Push put a []byte into process stream, return ErrDiscarded if
-//msg is not send immediately
+// Push put a []byte into process stream, return ErrDiscarded if
+// msg is not send immediately
 func (s *Server) Push(msg []byte) error {
 	select {
 	case s.dataC <- msg:
@@ -53,7 +53,7 @@ func (s *Server) Push(msg []byte) error {
 	}
 }
 
-//Process implements selina.Worker interface
+// Process implements selina.Worker interface
 func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp error) {
 	defer close(args.Output)
 	wg := sync.WaitGroup{}
@@ -94,7 +94,7 @@ func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp err
 	}
 }
 
-//NewServer create a new grpc server with given options
+// NewServer create a new grpc server with given options
 func NewServer(opts ServerOptions) *Server {
 	return &Server{opts: opts,
 		dataC: make(chan []byte, opts.BufferSize)}

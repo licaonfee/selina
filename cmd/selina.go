@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -128,7 +127,7 @@ func main() {
 	var fileStream io.Reader = os.Stdin
 
 	if *filename != "-" {
-		data, err := ioutil.ReadFile(*filename)
+		data, err := os.ReadFile(*filename)
 		if err != nil {
 			log.Fatal(err)
 		}

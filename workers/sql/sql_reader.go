@@ -11,23 +11,23 @@ import (
 
 var _ selina.Worker = (*Reader)(nil)
 
-//ReaderOptions provide parameters to create a Reader
+// ReaderOptions provide parameters to create a Reader
 type ReaderOptions struct {
-	//Driver which driver should be used
-	//this require that users import required driver
+	// Driver which driver should be used
+	// this require that users import required driver
 	Driver string
-	//ConnStr connection string relative to Driver
+	// ConnStr connection string relative to Driver
 	ConnStr string
-	//Query which SQL select will be executed into database
+	// Query which SQL select will be executed into database
 	Query string
-	//Mapper allow to configure type Scan, default magiccol.DefaultMapper
+	// Mapper allow to configure type Scan, default magiccol.DefaultMapper
 	Mapper *magiccol.Mapper
-	//WriteFormat default is json.Marshal
+	// WriteFormat default is json.Marshal
 	WriteFormat selina.Marshaler
 }
 
-//Check if a combination of options is valid
-//this not guarantees that worker will not fail
+// Check if a combination of options is valid
+// this not guarantees that worker will not fail
 func (o ReaderOptions) Check() error {
 	var driverOK bool
 	for _, d := range sql.Drivers() {
@@ -47,12 +47,12 @@ func (o ReaderOptions) Check() error {
 	return nil
 }
 
-//Reader a Worker that execute a given Query and export data via output channel
+// Reader a Worker that execute a given Query and export data via output channel
 type Reader struct {
 	opts ReaderOptions
 }
 
-//Process implements Worker interface
+// Process implements Worker interface
 func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer close(args.Output)
 	if err := s.opts.Check(); err != nil {
@@ -123,7 +123,7 @@ func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaler, rows
 	return nil
 }
 
-//NewReader create a new Reader with given options
+// NewReader create a new Reader with given options
 func NewReader(opts ReaderOptions) *Reader {
 	return &Reader{opts: opts}
 }

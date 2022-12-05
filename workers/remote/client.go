@@ -10,17 +10,17 @@ import (
 
 var _ selina.Worker = (*Client)(nil)
 
-//ClientOptions customize client
+// ClientOptions customize client
 type ClientOptions struct {
 	Address string
 }
 
-//Client connect to a remote grpc endpoint
+// Client connect to a remote grpc endpoint
 type Client struct {
 	opts ClientOptions
 }
 
-//Process implements selina.Worker interface
+// Process implements selina.Worker interface
 func (c *Client) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	conn, err := grpc.DialContext(ctx, c.opts.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -47,7 +47,7 @@ func (c *Client) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
-//NewClient create a new Client with given options
+// NewClient create a new Client with given options
 func NewClient(opts ClientOptions) *Client {
 	return &Client{opts: opts}
 }

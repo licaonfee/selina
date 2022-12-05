@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 
@@ -52,7 +53,9 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 			fname := w.opts.Filename.Filename(msg)
 			if fname != currFname {
 				if currFile != nil {
-					currFile.Close()
+					if err := currFile.Close(); !errHandler(err) {
+						return fmt.Errorf("closing file %w", err)
+					}
 				}
 				f, err := w.opts.Fs.Create(fname)
 				switch {
