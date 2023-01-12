@@ -32,8 +32,8 @@ func sameElements(a [][]byte, b [][]byte) bool {
 func TestBroadcasterBroadcastPanic(t *testing.T) {
 	const waitForbroascast = time.Millisecond * 20
 	b := selina.Broadcaster{}
-	_ = b.Client() //drop a client
-	in := make(chan []byte)
+	_ = b.Client() // drop a client
+	in := make(chan *bytes.Buffer)
 	go func() {
 		b.Broadcast(in)
 	}()
@@ -52,10 +52,10 @@ func TestBroadcasterBroadcastPanic(t *testing.T) {
 }
 func TestBroadcasterBroadcast(t *testing.T) {
 	const clientCount = 2
-	inChan := selina.SliceAsChannel([]string{"foo", "bar", "baz"}, true)
+	inChan := selina.SliceAsChannelOfBuffer([]string{"foo", "bar", "baz"}, true)
 	want := [][]byte{[]byte("foo"), []byte("bar"), []byte("baz")}
 	b := selina.Broadcaster{}
-	var out []<-chan []byte
+	var out []<-chan *bytes.Buffer
 	for i := 0; i < clientCount; i++ {
 		c := b.Client()
 		out = append(out, c)
@@ -64,13 +64,14 @@ func TestBroadcasterBroadcast(t *testing.T) {
 	var wg sync.WaitGroup
 	for _, c := range out {
 		wg.Add(1)
-		go func(can <-chan []byte) {
+		go func(can <-chan *bytes.Buffer) {
 			received := make([][]byte, 0)
 			for d := range can {
-				received = append(received, d)
+				received = append(received, d.Bytes())
+				selina.FreeBuffer(d)
 			}
 			if !sameElements(received, want) {
-				t.Errorf("Branch() got = %s, want = %s", received, want)
+				t.Errorf("Branch() got = %v, want = %v", received, want)
 			}
 			wg.Done()
 		}(c)
@@ -91,19 +92,19 @@ func TestReceiverReceive(t *testing.T) {
 			values = append(values, msg)
 			want = append(want, []byte(msg))
 		}
-		r.Watch(selina.SliceAsChannel(values, true))
+		r.Watch(selina.SliceAsChannelOfBuffer(values, true))
 	}
 	recv := r.Receive()
 	var got [][]byte
 	for msg := range recv {
-		got = append(got, msg)
+		got = append(got, msg.Bytes())
 	}
 	if !sameElements(got, want) {
 		t.Fatalf("Receive() got = %v , want = %v", got, want)
 	}
 }
 
-func readChan(in <-chan []byte) {
+func drainChan[T any](in <-chan T) {
 	for range in {
 	}
 }
@@ -135,12 +136,14 @@ func BenchmarkBroadcaster(b *testing.B) {
 		b.Run(fmt.Sprintf("%s_c(%d)_b(%d)", bench.name, bench.clientCount, len(bench.msg)), func(b *testing.B) {
 			broad := selina.Broadcaster{}
 			for i := 0; i < bench.clientCount; i++ {
-				go readChan(broad.Client())
+				go drainChan(broad.Client())
 			}
-			input := make(chan []byte)
+			input := make(chan *bytes.Buffer)
 			go func() {
 				for i := 0; i < b.N; i++ {
-					input <- bench.msg
+					buff := bytes.NewBuffer(nil)
+					buff.Write(bench.msg)
+					input <- buff
 				}
 				close(input)
 			}()
@@ -150,7 +153,7 @@ func BenchmarkBroadcaster(b *testing.B) {
 }
 
 func BenchmarkReceiver(b *testing.B) {
-	//This function need to be improved to acquire more precise data
+	// This function need to be improved to acquire more precise data
 	benchMarks := []struct {
 		name         string
 		serverCount  int
@@ -182,9 +185,11 @@ func BenchmarkReceiver(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				recv := selina.Receiver{}
-				data := make([][]byte, bench.messageCount)
+				data := make([]*bytes.Buffer, bench.messageCount)
 				for j := 0; j < bench.messageCount; j++ {
-					data[j] = []byte(string(bench.msg))
+					x := bytes.NewBuffer(nil)
+					x.Write(bench.msg)
+					data[j] = x
 				}
 				recv.Watch(selina.SliceAsChannelRaw(data, true))
 
@@ -197,19 +202,19 @@ func BenchmarkReceiver(b *testing.B) {
 }
 
 func TestSendContext(t *testing.T) {
-	outA := make(chan []byte, 1)
-	msg := []byte("foo")
-	//Case 1: message delivered
+	outA := make(chan *bytes.Buffer, 1)
+	msg := bytes.NewBuffer([]byte("foo"))
+	// Case 1: message delivered
 	if err := selina.SendContext(context.Background(), msg, outA); err != nil {
 		t.Fatalf("SendContext() err = %v", err)
 	}
 	got := <-outA
-	if !bytes.Equal(got, msg) {
+	if !bytes.Equal(got.Bytes(), msg.Bytes()) {
 		t.Fatalf("SendContext() message corupted got = %v, want = %v", got, msg)
 	}
-	//Case 2: context canceled
+	// Case 2: context canceled
 	const cancelAfter = time.Millisecond * 50
-	outB := make(chan []byte)
+	outB := make(chan *bytes.Buffer)
 	ctx, cancel := context.WithTimeout(context.Background(), cancelAfter)
 	defer cancel()
 	if err := selina.SendContext(ctx, msg, outB); err != context.DeadlineExceeded {

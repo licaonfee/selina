@@ -50,7 +50,7 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 			if !ok {
 				return nil
 			}
-			fname := w.opts.Filename.Filename(msg)
+			fname := w.opts.Filename.Filename(msg.Bytes())
 			if fname != currFname {
 				if currFile != nil {
 					if err := currFile.Close(); !errHandler(err) {
@@ -76,7 +76,8 @@ func (w Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error
 				currFile = f
 				currFname = fname
 			}
-			if _, err := currFile.Write(msg); err != nil {
+
+			if _, err := io.Copy(currFile, msg); err != nil {
 				return err
 			}
 		case <-ctx.Done():

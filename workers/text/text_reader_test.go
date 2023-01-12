@@ -2,6 +2,7 @@ package text_test
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -102,14 +103,17 @@ func TestReaderProcess(t *testing.T) {
 			}
 			tt.opts.Reader = r
 			w := text.NewReader(tt.opts)
-			input := make(chan []byte)
-			output := make(chan []byte, len(tt.want))
+			input := make(chan *bytes.Buffer)
+			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			err := w.Process(context.Background(), args)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("Process() err = %v , want = %v ", err, tt.wantErr)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Process() got = %v , want % v", got, tt.want)
 			}
@@ -147,8 +151,8 @@ func TestReaderProcessCloseOutput(t *testing.T) {
 func TestReaderProcessNilReader(t *testing.T) {
 	opts := text.ReaderOptions{Reader: nil}
 	tr := text.NewReader(opts)
-	in := make(chan []byte)
-	out := make(chan []byte) // unbuffered so, process wait forever
+	in := make(chan *bytes.Buffer)
+	out := make(chan *bytes.Buffer) // unbuffered so, process wait forever
 	args := selina.ProcessArgs{Input: in, Output: out}
 	err := tr.Process(context.Background(), args)
 	if err != text.ErrNilReader {

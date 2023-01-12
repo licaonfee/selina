@@ -12,7 +12,7 @@ func TestSliceAsChannel(t *testing.T) {
 	c := selina.SliceAsChannel(data, true)
 	got := []string{}
 	for v := range c {
-		got = append(got, string(v))
+		got = append(got, v)
 	}
 	if !reflect.DeepEqual(got, data) {
 		t.Fatalf("SliceAsChannel() got = %v , want = %v", got, data)
@@ -38,7 +38,10 @@ func TestChannelAsSlice(t *testing.T) {
 		input <- []byte(v)
 	}
 	close(input)
-	got := selina.ChannelAsSlice(input)
+	got := []string{}
+	for _, r := range selina.ChannelAsSlice(input) {
+		got = append(got, string(r))
+	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("ChannelAsSlice() got = %v, want = %v", got, want)
 	}

@@ -14,16 +14,16 @@ var _ selina.Worker = (*Cron)(nil)
 
 const cronDefaultOptions = cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor
 
-//CronOptions customize cron behaviour
+// CronOptions customize cron behaviour
 type CronOptions struct {
-	//Spec use same format as github.com/robfig/cron/v3
-	//Second Minute Hour DayOfMonth Month DayOfWeek
+	// Spec use same format as github.com/robfig/cron/v3
+	// Second Minute Hour DayOfMonth Month DayOfWeek
 	Spec string
-	//Which message will be sent every schedule
+	// Which message will be sent every schedule
 	Message []byte
 }
 
-//Check if a combination of options is valid
+// Check if a combination of options is valid
 func (o CronOptions) Check() error {
 	p := cron.NewParser(cronDefaultOptions)
 	_, err := p.Parse(o.Spec)
@@ -33,7 +33,7 @@ func (o CronOptions) Check() error {
 	return nil
 }
 
-//Cron send an specific message at scheduled intervals
+// Cron send an specific message at scheduled intervals
 type Cron struct {
 	opts CronOptions
 	id   cron.EntryID
@@ -51,7 +51,7 @@ func createCron() {
 // ErrBadCronSpec is returned when an job spec is not parseable
 var ErrBadCronSpec = errors.New("bad cron spec")
 
-//Process add a job scec, any message received will be discarded
+// Process add a job scec, any message received will be discarded
 // when input is closed this worker return nil
 func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
@@ -69,19 +69,22 @@ func (c *Cron) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}()
 	for {
 		select {
-		case _, ok := <-args.Input:
+		case x, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
+			selina.FreeBuffer(x)
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-tick:
-			args.Output <- c.opts.Message
+			msg := selina.GetBuffer()
+			msg.Write(c.opts.Message)
+			args.Output <- msg
 		}
 	}
 }
 
-//NewCron create a new Cron Worker with given options
+// NewCron create a new Cron Worker with given options
 func NewCron(opts CronOptions) *Cron {
 	return &Cron{opts: opts}
 }

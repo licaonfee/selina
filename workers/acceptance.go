@@ -1,6 +1,8 @@
+// Package workers common structure for selina workers
 package workers
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"time"
@@ -11,31 +13,31 @@ import (
 const waitProcessSleepDuration = time.Millisecond * 50
 const closeInputTimeout = time.Millisecond * 50
 
-//ErrProcessIgnoreCtx worker.Process does not terminate when context is canceled
+// ErrProcessIgnoreCtx worker.Process does not terminate when context is canceled
 var ErrProcessIgnoreCtx = errors.New("ignored context.Done")
 
-//ErrNotTerminatedOnCloseInput worker.Process does not finish when input channel is closed
+// ErrNotTerminatedOnCloseInput worker.Process does not finish when input channel is closed
 var ErrNotTerminatedOnCloseInput = errors.New("not terminate on closed input")
 
-//ErrOutputNotClosed worker.Process does not close output channel
+// ErrOutputNotClosed worker.Process does not close output channel
 var ErrOutputNotClosed = errors.New("output channel is not closed")
 
-//ATProcessCancel a worker must terminate and return context.Canceled
+// ATProcessCancel a worker must terminate and return context.Canceled
 // when context is canceled
 func ATProcessCancel(w selina.Worker) error {
-	input := make(chan []byte)
-	output := make(chan []byte) //unbuffered so, process wait forever
+	input := make(chan *bytes.Buffer)
+	output := make(chan *bytes.Buffer) // unbuffered so, process wait forever
 	ctx, cancel := context.WithCancel(context.Background())
 	errC := make(chan error, 1)
 	go func() {
-		time.Sleep(waitProcessSleepDuration) //wait to start process
+		time.Sleep(waitProcessSleepDuration) // wait to start process
 		cancel()
 	}()
 	go func() {
 		args := selina.ProcessArgs{Input: input, Output: output}
 		errC <- w.Process(ctx, args)
 	}()
-	<-ctx.Done() //wait until context is canceled
+	<-ctx.Done() // wait until context is canceled
 	select {
 	case err := <-errC:
 		if err != context.Canceled {
@@ -51,11 +53,11 @@ func ATProcessCancel(w selina.Worker) error {
 
 }
 
-//ATProcessCloseInput a worker must finish its job and return nil
+// ATProcessCloseInput a worker must finish its job and return nil
 // when input chanel (<-chan []byte )is closed
 func ATProcessCloseInput(w selina.Worker) error {
-	input := make(chan []byte)
-	output := make(chan []byte)
+	input := make(chan *bytes.Buffer)
+	output := make(chan *bytes.Buffer)
 	resp := make(chan error, 1)
 	go func() {
 		args := selina.ProcessArgs{Input: input, Output: output}
@@ -63,7 +65,7 @@ func ATProcessCloseInput(w selina.Worker) error {
 	}()
 	go func() {
 		for range output {
-			//Consume output to avoid Process lock
+			// Consume output to avoid Process lock
 		}
 	}()
 	time.Sleep(waitProcessSleepDuration)
@@ -76,10 +78,10 @@ func ATProcessCloseInput(w selina.Worker) error {
 	}
 }
 
-//ATProcessCloseOutput a worker must close its output channel on exit
+// ATProcessCloseOutput a worker must close its output channel on exit
 func ATProcessCloseOutput(w selina.Worker) error {
-	input := make(chan []byte)
-	output := make(chan []byte)
+	input := make(chan *bytes.Buffer)
+	output := make(chan *bytes.Buffer)
 	close(input)
 	args := selina.ProcessArgs{Input: input, Output: output}
 	_ = w.Process(context.Background(), args)

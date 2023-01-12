@@ -1,7 +1,9 @@
+// Package filesystem utilities for read and write files
 package filesystem
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -63,7 +65,8 @@ func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			if !ok {
 				return nil
 			}
-			fname := r.opts.Filename.Filename(msg)
+			fname := r.opts.Filename.Filename(msg.Bytes())
+			selina.FreeBuffer(msg)
 			file, err := r.opts.Fs.Open(fname)
 			switch {
 			case err == nil:
@@ -89,10 +92,12 @@ func (r *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-func readFile(ctx context.Context, sc *bufio.Scanner, out chan<- []byte) error {
+func readFile(ctx context.Context, sc *bufio.Scanner, out chan<- *bytes.Buffer) error {
 	for sc.Scan() {
+		msg := selina.GetBuffer()
+		msg.Write(sc.Bytes())
 		select {
-		case out <- []byte(sc.Text()):
+		case out <- msg:
 		case <-ctx.Done():
 			return ctx.Err()
 		}

@@ -13,7 +13,7 @@ var _ selina.Worker = (*sink)(nil)
 var _ selina.Worker = (*sliceReader)(nil)
 var _ selina.Worker = (*sliceWriter)(nil)
 
-//lazyWorker just wait until context is canceled, or in is closed
+// lazyWorker just wait until context is canceled, or in is closed
 type lazyWorker struct{}
 
 func (l *lazyWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
@@ -37,8 +37,10 @@ type produceN struct {
 func (p *produceN) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	for i := 0; i < p.count; i++ {
+		b := selina.GetBuffer()
+		b.Write(p.message)
 		select {
-		case args.Output <- p.message:
+		case args.Output <- b:
 		case <-ctx.Done():
 			return ctx.Err()
 		case _, ok := <-args.Input:
@@ -56,10 +58,11 @@ func (s *sink) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	for {
 		select {
-		case _, ok := <-args.Input:
+		case x, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
+			selina.FreeBuffer(x)
 		case <-ctx.Done():
 			return ctx.Err()
 
@@ -94,9 +97,11 @@ type sliceReader struct {
 func (r *sliceReader) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	for _, v := range r.values {
+		msg := selina.GetBuffer()
+		msg.WriteString(v)
 		select {
 		default:
-			if err := selina.SendContext(ctx, []byte(v), args.Output); err != nil {
+			if err := selina.SendContext(ctx, msg, args.Output); err != nil {
 				return err
 			}
 		case _, ok := <-args.Input:
@@ -122,7 +127,8 @@ func (w *sliceWriter) Process(ctx context.Context, args selina.ProcessArgs) erro
 			if !ok {
 				return nil
 			}
-			w.values = append(w.values, string(msg))
+			w.values = append(w.values, msg.String())
+			selina.FreeBuffer(msg)
 		case <-ctx.Done():
 			return ctx.Err()
 		}

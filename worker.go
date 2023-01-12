@@ -1,6 +1,7 @@
 package selina
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,7 +15,7 @@ import (
 // On context cancellation, Process finalize ASAP and return context.Cancelled
 // On finish, Process must close output channel and return error or nil
 type Worker interface {
-	//Process must close write only channel
+	// Process must close write only channel
 	Process(ctx context.Context, args ProcessArgs) error
 }
 
@@ -23,17 +24,17 @@ var ErrNilUpstream = errors.New("nil upstream channel")
 
 // ProcessArgs encapsulate arguments to Worker.Process
 type ProcessArgs struct {
-	//Input is nil when there is no upstream channel
-	Input  <-chan []byte
-	Output chan<- []byte
+	// Input is nil when there is no upstream channel
+	Input  <-chan *bytes.Buffer
+	Output chan<- *bytes.Buffer
 	Err    chan error
 }
 
 // OptionsChecker provide a way to determine if a state is valid or not
 type OptionsChecker interface {
-	//Check return an error if options has an invalid value
-	//it must not modify values at all and by preference should be
-	//implemented as a value receiver
+	// Check return an error if options has an invalid value
+	// it must not modify values at all and by preference should be
+	// implemented as a value receiver
 	Check() error
 }
 

@@ -1,6 +1,7 @@
 package filesystem_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -105,8 +106,8 @@ func TestWriterProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := fs.NewWriter(tt.opts)
-			input := selina.SliceAsChannel(tt.in, true)
-			output := make(chan []byte)
+			input := selina.SliceAsChannelOfBuffer(tt.in, true)
+			output := make(chan *bytes.Buffer)
 			args := selina.ProcessArgs{Input: input, Output: output}
 			err := r.Process(context.Background(), args)
 			if !errors.Is(err, tt.wantErr) {

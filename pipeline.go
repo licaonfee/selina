@@ -9,7 +9,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-//Pipeliner all implementations must meet the following conditions
+// Pipeliner all implementations must meet the following conditions
 // Run must call Node.Start of all Nodes
 // Context passed in Run must be propagated to all Node.Start methods
 // Nodes() return an slice with all instances of *Nod
@@ -19,12 +19,12 @@ type Pipeliner interface {
 	Nodes() []*Node
 }
 
-//SimplePipeline default value is unusable, you must create it with NewSimplePipeline
+// SimplePipeline default value is unusable, you must create it with NewSimplePipeline
 type SimplePipeline struct {
 	nodes map[string]*Node
 }
 
-//Run init pipeline proccesing, return an error!= nil if any Node fail
+// Run init pipeline proccesing, return an error!= nil if any Node fail
 func (p *SimplePipeline) Run(ctx context.Context) error {
 	g, ctx := errgroup.WithContext(ctx)
 	for _, n := range p.nodes {
@@ -36,7 +36,7 @@ func (p *SimplePipeline) Run(ctx context.Context) error {
 	return g.Wait()
 }
 
-//Stats returns a map with all nodes Stats object
+// Stats returns a map with all nodes Stats object
 func (p *SimplePipeline) Stats() map[string]Stats {
 	ret := make(map[string]Stats)
 	for _, n := range p.nodes {
@@ -45,7 +45,7 @@ func (p *SimplePipeline) Stats() map[string]Stats {
 	return ret
 }
 
-//Nodes return all instances of *Node
+// Nodes return all instances of *Node
 func (p *SimplePipeline) Nodes() []*Node {
 	ret := make([]*Node, 0, len(p.nodes))
 	for _, v := range p.nodes {
@@ -54,9 +54,9 @@ func (p *SimplePipeline) Nodes() []*Node {
 	return ret
 }
 
-//LinealPipeline creates a Pipeliner
-//Nodes in "nodes" are chained in a slingle branch Pipeline
-//Node(0)->Node(1)->Node(2)->....Node(n)
+// LinealPipeline creates a Pipeliner
+// Nodes in "nodes" are chained in a slingle branch Pipeline
+// Node(0)->Node(1)->Node(2)->....Node(n)
 func LinealPipeline(nodes ...*Node) Pipeliner {
 	p := &SimplePipeline{}
 	p.nodes = make(map[string]*Node)
@@ -70,8 +70,8 @@ func LinealPipeline(nodes ...*Node) Pipeliner {
 	return p
 }
 
-//FreePipeline provide a method to run arbitrary chained Nodes
-//this method does not call Node.Chain
+// FreePipeline provide a method to run arbitrary chained Nodes
+// this method does not call Node.Chain
 func FreePipeline(nodes ...*Node) Pipeliner {
 	p := &SimplePipeline{}
 	p.nodes = make(map[string]*Node)

@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"flag"
 	"io"
-	"io/ioutil"
 	"log"
+	_ "net/http/pprof"
+	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -15,6 +17,8 @@ import (
 	"github.com/licaonfee/selina/workers/csv"
 	"github.com/licaonfee/selina/workers/text"
 	"github.com/vmihailenco/msgpack"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 const sample = `{"name":"Jimmy", "age": 22, "pet":"cat"}
@@ -47,24 +51,31 @@ func main() {
 	const defaultDuration = time.Second * 5
 	duration := flag.Duration("duration", defaultDuration, "Run for X time")
 	flag.Parse()
-	if err := agent.Listen(agent.Options{}); err != nil {
-		log.Fatal(err)
-	}
 	rd := newInfiniteReader(sample)
 	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd, ReadFormat: json.Unmarshal, WriteFormat: msgpack.Marshal}))
 	//Just print name and pet
 	filter := selina.NewNode("CSV", csv.NewEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}, ReadFormat: msgpack.Unmarshal}))
-	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: ioutil.Discard, SkipNewLine: true}))
+	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: os.Stdout, SkipNewLine: true}))
 	pipe := selina.LinealPipeline(input, filter, output)
 
 	ctx, cancel := context.WithTimeout(context.Background(), *duration)
 	defer cancel()
+	ctx, cancel = signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+	if err := agent.Listen(agent.Options{}); err != nil {
+		log.Fatal(err)
+	}
+	time.Sleep(time.Second)
 	if err := pipe.Run(ctx); err != context.DeadlineExceeded {
 		log.Printf("ERR: %v\n", err)
 	}
+
+	prt := message.NewPrinter(language.English)
+
 	for _, node := range pipe.Nodes() {
 		stat := node.Stats()
-		log.Printf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received)
+		log.Print(prt.Sprintf("Node:%s(%s)=Send: %d, Recv: %d\n", node.Name(), node.ID(), stat.Sent, stat.Received))
 	}
+
 	//selina.Graph(pipe, os.Stdout)
 }

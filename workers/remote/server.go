@@ -79,11 +79,14 @@ func (s *Server) Process(ctx context.Context, args selina.ProcessArgs) (errp err
 	defer gserver.GracefulStop()
 	for {
 		select {
-		case _, ok := <-args.Input:
+		case x, ok := <-args.Input:
 			if !ok {
 				return nil
 			}
-		case msg := <-s.dataC:
+			selina.FreeBuffer(x)
+		case data := <-s.dataC:
+			msg := selina.GetBuffer()
+			msg.Write(data)
 			if err := selina.SendContext(ctx, msg, args.Output); err != nil {
 				return err
 			}

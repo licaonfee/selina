@@ -95,7 +95,9 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 					return err
 				}
 			}
-			if err := selina.SendContext(ctx, msg, args.Output); err != nil {
+			b := selina.GetBuffer()
+			b.Write(msg)
+			if err := selina.SendContext(ctx, b, args.Output); err != nil {
 				return err
 			}
 		}

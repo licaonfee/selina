@@ -1,6 +1,7 @@
 package remote_test
 
 import (
+	"bytes"
 	context "context"
 	"errors"
 	"testing"
@@ -22,8 +23,8 @@ func TestClientProcess(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := remote.NewClient(tt.opts)
 			args := selina.ProcessArgs{
-				Input:  make(chan []byte),
-				Output: make(chan []byte),
+				Input:  make(chan *bytes.Buffer),
+				Output: make(chan *bytes.Buffer),
 			}
 			err := c.Process(context.Background(), args)
 			if err != tt.wantErr && (!errors.As(err, &tt.wantErr)) {

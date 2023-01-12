@@ -1,6 +1,7 @@
 package regex_test
 
 import (
+	"bytes"
 	"context"
 	"reflect"
 
@@ -45,9 +46,9 @@ func TestFilter_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := regex.NewFilter(tt.args.opts)
-			input := selina.SliceAsChannel(tt.args.in, true)
-			output := make(chan []byte)
-			got := []string{}
+			input := selina.SliceAsChannelOfBuffer(tt.args.in, true)
+			output := make(chan *bytes.Buffer)
+			got := []*bytes.Buffer{}
 			wait := make(chan struct{})
 			go func() {
 				got = selina.ChannelAsSlice(output)
@@ -61,7 +62,11 @@ func TestFilter_Process(t *testing.T) {
 				return
 			}
 			<-wait
-			if !reflect.DeepEqual(got, tt.args.want) {
+			realGot := []string{}
+			for _, b := range got {
+				realGot = append(realGot, b.String())
+			}
+			if !reflect.DeepEqual(realGot, tt.args.want) {
 				t.Fatalf("Process() got = %T, want =  %v", got, tt.args.want)
 			}
 		})

@@ -147,7 +147,7 @@ func TestATPipelineAcceptance(t *testing.T) {
 			wantErr: errNocancel,
 		},
 		{
-			name: "Stats failed Pipeliner", //Use same test case as no cancel
+			name: "Stats failed Pipeliner", // Use same test case as no cancel
 			pipe: &noCancelPipeline{nodes: []*selina.Node{
 				selina.NewNode("n1", &lazyWorker{}),
 				selina.NewNode("n2", &lazyWorker{})},

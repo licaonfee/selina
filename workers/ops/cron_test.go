@@ -1,6 +1,7 @@
 package ops_test
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 	"testing"
@@ -73,8 +74,8 @@ func TestCronProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := ops.NewCron(tt.opts)
-			input := make(chan []byte)
-			output := make(chan []byte, len(tt.want))
+			input := make(chan *bytes.Buffer)
+			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			go func(wait time.Duration) {
 				time.Sleep(wait)
@@ -83,7 +84,10 @@ func TestCronProcess(t *testing.T) {
 			if err := c.Process(context.Background(), args); !errors.Is(err, tt.wantErr) {
 				t.Fatalf("Process() err = %v, wantErr %v", err, tt.wantErr)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}

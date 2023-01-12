@@ -36,7 +36,10 @@ func (c *Client) Process(ctx context.Context, args selina.ProcessArgs) error {
 			if !ok {
 				return nil
 			}
-			m := Message{Data: msg}
+			data := make([]byte, len(msg.Bytes()))
+			copy(data, msg.Bytes())
+			selina.FreeBuffer(msg)
+			m := Message{Data: data}
 			_, err := wc.Send(ctx, &m)
 			if err != nil {
 				return err

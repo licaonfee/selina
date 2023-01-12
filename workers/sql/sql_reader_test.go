@@ -1,6 +1,7 @@
 package sql_test
 
 import (
+	"bytes"
 	"context"
 	dbsql "database/sql"
 	"errors"
@@ -87,13 +88,16 @@ func TestSQLReader_Process(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			setupDB(tt.opts.ConnStr)
 			s := sql.NewReader(tt.opts)
-			output := make(chan []byte, len(tt.want)+1)
+			output := make(chan *bytes.Buffer, len(tt.want)+1)
 			args := selina.ProcessArgs{Input: nil, Output: output}
 			err := s.Process(context.Background(), args)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("Process() err = %v , wantErr=%v", err, tt.wantErr)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}

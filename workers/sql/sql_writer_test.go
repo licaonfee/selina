@@ -1,6 +1,7 @@
 package sql_test
 
 import (
+	"bytes"
 	"testing"
 
 	dbsql "database/sql"
@@ -65,8 +66,8 @@ func TestWriterProcess(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			setupDB(tt.opts.ConnStr)
 			s := sql.NewWriter(tt.opts)
-			input := selina.SliceAsChannel(tt.in, true)
-			output := make(chan []byte)
+			input := selina.SliceAsChannelOfBuffer(tt.in, true)
+			output := make(chan *bytes.Buffer)
 			args := selina.ProcessArgs{Input: input, Output: output}
 			if err := s.Process(context.Background(), args); (err != nil) != tt.wantErr {
 				t.Fatalf("Process() err = %v", err)

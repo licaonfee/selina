@@ -1,23 +1,13 @@
 package selina
 
-//SliceAsChannel return a channel that read from an slice
-// if autoClose is true , then channel is closed after last message is consummed
-func SliceAsChannel(data []string, autoClose bool) chan []byte {
-	retc := make(chan []byte, len(data))
-	go func() {
-		for _, d := range data {
-			retc <- []byte(d)
-		}
-		if autoClose {
-			close(retc)
-		}
-	}()
-	return retc
-}
+import (
+	"bytes"
+)
 
-//SliceAsChannelRaw same as SliceAsChannel
-func SliceAsChannelRaw(data [][]byte, autoClose bool) chan []byte {
-	retc := make(chan []byte, len(data))
+// SliceAsChannel return a channel that read from an slice
+// if autoClose is true , then channel is closed after last message is consummed
+func SliceAsChannel[T any](data []T, autoClose bool) chan T {
+	retc := make(chan T, len(data))
 	go func() {
 		for _, d := range data {
 			retc <- d
@@ -29,12 +19,43 @@ func SliceAsChannelRaw(data [][]byte, autoClose bool) chan []byte {
 	return retc
 }
 
-//ChannelAsSlice read from in channel until is closed
+// SliceAsChannelOfBuffer return a channel that read from an slice
+// if autoClose is true , then channel is closed after last message is consummed
+func SliceAsChannelOfBuffer(data []string, autoClose bool) chan *bytes.Buffer {
+	retc := make(chan *bytes.Buffer, len(data))
+	go func() {
+		for _, d := range data {
+			buff := GetBuffer()
+			buff.WriteString(d)
+			retc <- buff
+		}
+		if autoClose {
+			close(retc)
+		}
+	}()
+	return retc
+}
+
+// SliceAsChannelRaw same as SliceAsChannel
+func SliceAsChannelRaw[T any](data []T, autoClose bool) chan T {
+	retc := make(chan T, len(data))
+	go func() {
+		for _, d := range data {
+			retc <- d
+		}
+		if autoClose {
+			close(retc)
+		}
+	}()
+	return retc
+}
+
+// ChannelAsSlice read from in channel until is closed
 // return an slice with all messages received
-func ChannelAsSlice(in <-chan []byte) []string {
-	ret := []string{}
+func ChannelAsSlice[T any](in <-chan T) []T {
+	var ret []T
 	for value := range in {
-		ret = append(ret, string(value))
+		ret = append(ret, value)
 	}
 	return ret
 }

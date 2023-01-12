@@ -2,6 +2,7 @@ package filesystem_test
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"errors"
 	"os"
@@ -91,14 +92,17 @@ func TestReaderProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := fs.NewReader(tt.opts)
-			input := selina.SliceAsChannel(tt.in, true)
-			output := make(chan []byte, len(tt.want))
+			input := selina.SliceAsChannelOfBuffer(tt.in, true)
+			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			err := r.Process(context.Background(), args)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("Process() err = %T , want = %v", err, tt.wantErr)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Process() got = %v , want = %v", got, tt.want)
 			}

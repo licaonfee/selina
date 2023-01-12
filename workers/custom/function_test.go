@@ -1,6 +1,7 @@
 package custom_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"reflect"
@@ -85,15 +86,18 @@ func TestFunctionProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := custom.NewFunction(tt.opts)
-			input := selina.SliceAsChannel(tt.msgs, true)
-			output := make(chan []byte, len(tt.want))
+			input := selina.SliceAsChannelOfBuffer(tt.msgs, true)
+			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			if err := f.Process(context.Background(), args); (err != nil) != tt.wantErr {
 				t.Fatalf("Process() unexpected err = %v", err)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("Process() got = %v , want = %v", got, tt.want)
+				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}
 		})
 	}

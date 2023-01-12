@@ -45,7 +45,9 @@ func (t *TimeSerie) Process(ctx context.Context, args selina.ProcessArgs) error 
 			if err != nil {
 				return err
 			}
-			if err := selina.SendContext(ctx, b, args.Output); err != nil {
+			buff := selina.GetBuffer()
+			buff.Write(b)
+			if err := selina.SendContext(ctx, buff, args.Output); err != nil {
 				return err
 			}
 		}

@@ -40,7 +40,7 @@ func (r *Filter) Process(ctx context.Context, args selina.ProcessArgs) error {
 		select {
 		case msg, ok := <-args.Input:
 			if ok {
-				if re.Match(msg) {
+				if re.Match(msg.Bytes()) {
 					args.Output <- msg
 				}
 			} else {

@@ -16,17 +16,17 @@ var _ selina.Worker = (*idealWorker)(nil)
 type idealWorker struct{}
 
 func (i *idealWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
-	//A Worker must close output in all exit paths
+	// A Worker must close output in all exit paths
 	defer close(args.Output)
-	//when input is closed return nil
+	// when input is closed return nil
 	for {
 		select {
 		case _, ok := <-args.Input:
-			if !ok { //when input is closed and drained return nil
+			if !ok { // when input is closed and drained return nil
 				return nil
 			}
 		case <-ctx.Done():
-			return ctx.Err() //On cancel return context.Canceled
+			return ctx.Err() // On cancel return context.Canceled
 		}
 	}
 }
@@ -37,7 +37,7 @@ type badContextWorker struct{}
 
 func (b *badContextWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
-	//just ignore context
+	// just ignore context
 	for range args.Input {
 	}
 	return nil
@@ -49,7 +49,7 @@ type badInputWorker struct{}
 
 func (b *badInputWorker) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
-	//ignore input channel
+	// ignore input channel
 	<-ctx.Done()
 	return ctx.Err()
 }
@@ -62,11 +62,11 @@ func (b *badOutputWorker) Process(ctx context.Context, args selina.ProcessArgs) 
 	for {
 		select {
 		case _, ok := <-args.Input:
-			if !ok { //when input is closed and drained return nil
+			if !ok { // when input is closed and drained return nil
 				return nil
 			}
 		case <-ctx.Done():
-			return ctx.Err() //On cancel return context.Canceled
+			return ctx.Err() // On cancel return context.Canceled
 		}
 	}
 }
@@ -79,8 +79,10 @@ type workerN struct {
 func (w *workerN) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	for i := 0; i < w.N; i++ {
+		buff := selina.GetBuffer()
+		buff.Write(w.Msg)
 		select {
-		case args.Output <- w.Msg:
+		case args.Output <- buff:
 		case <-ctx.Done():
 			return ctx.Err()
 		case _, ok := <-args.Input:
@@ -99,13 +101,13 @@ type badCtxPropagation struct{}
 var errBadCtxError = errors.New("no context propagation")
 
 func (b *badCtxPropagation) Process(ctx context.Context, args selina.ProcessArgs) error {
-	//A Worker must close output in all exit paths
+	// A Worker must close output in all exit paths
 	defer close(args.Output)
-	//when input is closed return nil
+	// when input is closed return nil
 	for {
 		select {
 		case _, ok := <-args.Input:
-			if !ok { //when input is closed and drained return nil
+			if !ok { // when input is closed and drained return nil
 				return nil
 			}
 		case <-ctx.Done():

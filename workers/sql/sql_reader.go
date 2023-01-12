@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -63,11 +64,11 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 		return err
 	}
 
-	var input <-chan []byte
+	var input <-chan *bytes.Buffer
 	if args.Input != nil {
 		input = args.Input
 	} else {
-		in := make(chan []byte, 1)
+		in := make(chan *bytes.Buffer, 1)
 		in <- nil
 		close(in)
 		input = in
@@ -96,7 +97,7 @@ func (s *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaler, rows *sql.Rows, out chan<- []byte) error {
+func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaler, rows *sql.Rows, out chan<- *bytes.Buffer) error {
 	defer rows.Close()
 	obj := make(map[string]interface{})
 	m := s.opts.Mapper
@@ -113,7 +114,9 @@ func (s *Reader) serializeRows(ctx context.Context, codec selina.Marshaler, rows
 		if err != nil {
 			return err
 		}
-		if err := selina.SendContext(ctx, msg, out); err != nil {
+		buff := selina.GetBuffer()
+		buff.Write(msg)
+		if err := selina.SendContext(ctx, buff, out); err != nil {
 			return err
 		}
 	}

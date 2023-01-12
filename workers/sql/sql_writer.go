@@ -10,7 +10,7 @@ import (
 
 var _ selina.Worker = (*Writer)(nil)
 
-//WriterOptions provide parameters to create a Writer
+// WriterOptions provide parameters to create a Writer
 type WriterOptions struct {
 	//Driver which driver should be used
 	//this require that users import required driver
@@ -25,8 +25,8 @@ type WriterOptions struct {
 	ReadFormat selina.Unmarshaler
 }
 
-//Check if a combination of options is valid
-//this not guarantees that worker will not fail
+// Check if a combination of options is valid
+// this not guarantees that worker will not fail
 func (o WriterOptions) Check() error {
 	var driverOk bool
 	for _, d := range sql.Drivers() {
@@ -43,12 +43,12 @@ func (o WriterOptions) Check() error {
 	return nil
 }
 
-//Writer a Worker that insert data into database
+// Writer a Worker that insert data into database
 type Writer struct {
 	opts WriterOptions
 }
 
-//Process implements Worker interface
+// Process implements Worker interface
 func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	if err := s.opts.Check(); err != nil {
@@ -68,7 +68,8 @@ func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 			if !ok {
 				return nil
 			}
-			cols, values, err := deserialize(codec, data)
+			cols, values, err := deserialize(codec, data.Bytes())
+			selina.FreeBuffer(data)
 			if err != nil {
 				return err
 			}
@@ -87,7 +88,7 @@ func (s *Writer) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
-//NewWriter create a new Writer with given options
+// NewWriter create a new Writer with given options
 func NewWriter(opts WriterOptions) *Writer {
 	return &Writer{opts: opts}
 }

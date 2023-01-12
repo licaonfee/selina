@@ -1,6 +1,7 @@
 package csv_test
 
 import (
+	"bytes"
 	"context"
 	ecsv "encoding/csv"
 	"encoding/json"
@@ -81,16 +82,19 @@ func TestEncoderProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := csv.NewEncoder(tt.opts)
-			var input chan []byte
+			var input chan *bytes.Buffer
 			if len(tt.input) > 0 {
-				input = selina.SliceAsChannel(tt.input, true)
+				input = selina.SliceAsChannelOfBuffer(tt.input, true)
 			}
-			output := make(chan []byte, len(tt.want))
+			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			if err := c.Process(context.Background(), args); err != tt.wantErr && errors.Is(err, tt.wantErr) {
 				t.Fatalf("Process() err =%v", err)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %v, want = %v", got, tt.want)
 			}
@@ -181,16 +185,19 @@ func TestDecoderProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := csv.NewDecoder(tt.opts)
-			var input chan []byte
+			var input chan *bytes.Buffer
 			if len(tt.input) > 0 {
-				input = selina.SliceAsChannel(tt.input, true)
+				input = selina.SliceAsChannelOfBuffer(tt.input, true)
 			}
-			output := make(chan []byte, len(tt.want))
+			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
 			if err := d.Process(context.Background(), args); !errors.Is(err, tt.wantErr) {
 				t.Fatalf("Process() err = %T, want = %T ", err, tt.wantErr)
 			}
-			got := selina.ChannelAsSlice(output)
+			got := []string{}
+			for _, b := range selina.ChannelAsSlice(output) {
+				got = append(got, b.String())
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("Process() got = %#v , want = %#v", got, tt.want)
 			}

@@ -1,6 +1,7 @@
 package random_test
 
 import (
+	"bytes"
 	"context"
 	"testing"
 
@@ -24,10 +25,10 @@ func TestRandomProcesslen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := random.NewRandom(tt.opts)
-			input := make(chan []byte, 1)
+			input := make(chan *bytes.Buffer, 1)
 			input <- nil
-			output := make(chan []byte)
-			var msg []byte
+			output := make(chan *bytes.Buffer)
+			var msg *bytes.Buffer
 			go func() {
 				msg = <-output
 				close(input)
@@ -39,15 +40,15 @@ func TestRandomProcesslen(t *testing.T) {
 				t.Fatalf("Process() err = %v", err)
 				return
 			}
-			if len(msg) != tt.opts.Len {
-				t.Fatalf("Process() got len=%d, want len=%d", len(msg), tt.opts.Len)
+			if len(msg.Bytes()) != tt.opts.Len {
+				t.Fatalf("Process() got len=%d, want len=%d", len(msg.Bytes()), tt.opts.Len)
 			}
 		})
 	}
 }
 
 func TestRandomRunUntilCancel(t *testing.T) {
-	out := make(chan []byte)
+	out := make(chan *bytes.Buffer)
 	args := selina.ProcessArgs{
 		Input:  nil,
 		Output: out,

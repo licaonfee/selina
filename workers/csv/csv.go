@@ -1,9 +1,11 @@
+// Package csv workers to read and write csv format
 package csv
 
 import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"sort"
 	"strconv"
@@ -13,12 +15,13 @@ import (
 
 var _ selina.Worker = (*Encoder)(nil)
 
+// EncoderOptions configure csv encoding
 type EncoderOptions struct {
-	//Header acts as a filter, if a field is not in header is skipped
+	// Header acts as a filter, if a field is not in header is skipped
 	Header []string
-	//Comma default ,
+	// Comma default ,
 	Comma rune
-	//UseCRLF use \r\n instead of \n
+	// UseCRLF use \r\n instead of \n
 	UseCRLF    bool
 	Handler    selina.ErrorHandler
 	ReadFormat selina.Unmarshaler
@@ -29,6 +32,7 @@ type Encoder struct {
 	opts EncoderOptions
 }
 
+// Process implements selina.Worker interface
 func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	if args.Input == nil {
@@ -59,7 +63,8 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			data := make(map[string]interface{})
-			err := rf(msg, &data)
+			err := rf(msg.Bytes(), &data)
+			selina.FreeBuffer(msg)
 			switch {
 			case err == nil:
 			case errHandler(err):
@@ -84,6 +89,7 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
+// NewEncoder returns a new Encoder with given options
 func NewEncoder(opts EncoderOptions) *Encoder {
 	return &Encoder{opts: opts}
 }
@@ -114,14 +120,14 @@ func getRow(header []string, data map[string]interface{}) []string {
 	return res
 }
 
-func sendData(ctx context.Context, row []string, w *csv.Writer, buff *bytes.Buffer, output chan<- []byte) error {
+func sendData(ctx context.Context, row []string, w *csv.Writer, buff *bytes.Buffer, output chan<- *bytes.Buffer) error {
 	buff.Reset()
 	if err := w.Write(row); err != nil {
 		return err
 	}
 	w.Flush()
-	b := make([]byte, buff.Len())
-	copy(b, buff.Bytes())
+	b := selina.GetBuffer()
+	_, _ = io.Copy(b, buff)
 	if err := selina.SendContext(ctx, b, output); err != nil {
 		return err
 	}
@@ -130,6 +136,7 @@ func sendData(ctx context.Context, row []string, w *csv.Writer, buff *bytes.Buff
 
 var _ selina.Worker = (*Decoder)(nil)
 
+// DecoderOptions configure csv read format
 type DecoderOptions struct {
 	Header  []string
 	Comma   rune
@@ -143,6 +150,7 @@ type Decoder struct {
 	opts DecoderOptions
 }
 
+// Process implements selina.Worker interface
 func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	if args.Input == nil {
@@ -172,7 +180,8 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 				return nil
 			}
 			buff.Reset()
-			_, _ = buff.Write(msg)
+			_, _ = io.Copy(buff, msg)
+			selina.FreeBuffer(msg)
 			row, err := r.Read()
 			switch {
 			case err == nil:
@@ -187,15 +196,18 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 			}
 			b, err := codec(res)
 			if err != nil {
-				return err
+				return fmt.Errorf("encoding %w", err)
 			}
-			if err := selina.SendContext(ctx, b, args.Output); err != nil {
+			nb := selina.GetBuffer()
+			nb.Write(b)
+			if err := selina.SendContext(ctx, nb, args.Output); err != nil {
 				return err
 			}
 		}
 	}
 }
 
+// NewDecoder return a new csv decoder with given options
 func NewDecoder(opts DecoderOptions) *Decoder {
 	return &Decoder{opts: opts}
 }

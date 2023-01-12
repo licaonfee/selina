@@ -111,13 +111,14 @@ func TestNodeStop(t *testing.T) {
 func Benchmark_Node(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		start := selina.NewNode("start", &produceN{count: 100, message: []byte("byte")})
+		start := selina.NewNode("start", &produceN{count: 10, message: []byte("byte")})
 		end := selina.NewNode("end", &sink{})
 		start.Chain(end)
 		b.StartTimer()
-		go func() {
+		go func(b *testing.B) {
 			_ = start.Start(context.Background())
-		}()
+
+		}(b)
 		_ = end.Start(context.Background())
 	}
 }

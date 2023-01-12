@@ -74,14 +74,18 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 			if !ok {
 				return nil
 			}
+			var data []byte
 			if t.opts.Codec != nil {
-				data, err := t.opts.Codec(msg)
+				data, err = t.opts.Codec(msg.Bytes())
 				if err != nil {
 					return err
 				}
-				msg = data
+				//selina.FreeBytes(&msg)
+				msg.Reset()
+				msg.Write(data)
 			}
-			_, err = w.Write(msg)
+			_, err = io.Copy(w, msg)
+			selina.FreeBuffer(msg)
 			if err != nil {
 				return
 			}
