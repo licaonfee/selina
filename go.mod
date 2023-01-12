@@ -8,7 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.24
-	github.com/lib/pq v1.10.6
+	github.com/lib/pq v1.10.7
 	github.com/licaonfee/magiccol v1.1.0
 	github.com/licaonfee/tserie v0.2.1
 	github.com/mitchellh/mapstructure v1.5.0
