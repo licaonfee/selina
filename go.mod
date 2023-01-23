@@ -9,7 +9,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/gops v0.3.24
 	github.com/lib/pq v1.10.6
-	github.com/licaonfee/magiccol v1.1.0
+	github.com/licaonfee/magiccol v1.2.0
 	github.com/licaonfee/tserie v0.2.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/ulid/v2 v2.1.0
