@@ -17,11 +17,11 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.8.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
-	golang.org/x/net v0.0.0-20220630215102-69896b714898
+	golang.org/x/net v0.4.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/text v0.3.7
-	google.golang.org/grpc v1.47.0
-	google.golang.org/protobuf v1.28.0
+	golang.org/x/text v0.5.0
+	google.golang.org/grpc v1.52.3
+	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -29,13 +29,12 @@ require (
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
-	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
+	golang.org/x/sys v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7 // indirect
+	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
