@@ -6,7 +6,7 @@ require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
 	github.com/alecthomas/jsonschema v0.0.0-20220216202328-9eeeec9d044b
 	github.com/go-sql-driver/mysql v1.7.0
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/google/gops v0.3.27
 	github.com/lib/pq v1.10.7
 	github.com/licaonfee/magiccol v1.2.0
