@@ -13,7 +13,7 @@ require (
 	github.com/licaonfee/tserie v0.3.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/proullon/ramsql v0.0.0-20220719091513-bf3c20043516
+	github.com/proullon/ramsql v0.0.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.9.5
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
@@ -34,7 +34,6 @@ require (
 	github.com/stretchr/testify v1.8.1 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230706204954-ccb25ca9f130 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230726155614-23370e0ffb3e // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
