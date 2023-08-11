@@ -7,7 +7,7 @@ require (
 	github.com/alecthomas/jsonschema v0.0.0-20220216202328-9eeeec9d044b
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang/protobuf v1.5.3
-	github.com/google/gops v0.3.27
+	github.com/google/gops v0.3.28
 	github.com/lib/pq v1.10.9
 	github.com/licaonfee/magiccol v1.2.0
 	github.com/licaonfee/tserie v0.3.0
@@ -31,7 +31,7 @@ require (
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230726155614-23370e0ffb3e // indirect
