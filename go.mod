@@ -18,7 +18,7 @@ require (
 	github.com/spf13/afero v1.9.5
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	golang.org/x/net v0.15.0
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.58.0
 	google.golang.org/protobuf v1.31.0
