@@ -1,5 +1,4 @@
-// Package custom implements an user defined function
-package custom
+package workers
 
 import (
 	"bytes"

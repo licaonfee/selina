@@ -64,7 +64,8 @@ func ATProcessCloseInput(w selina.Worker) error {
 		resp <- w.Process(context.Background(), args)
 	}()
 	go func() {
-		for range output {
+		for x := range output {
+			_ = x
 			// Consume output to avoid Process lock
 		}
 	}()
@@ -86,7 +87,8 @@ func ATProcessCloseOutput(w selina.Worker) error {
 	args := selina.ProcessArgs{Input: input, Output: output}
 	_ = w.Process(context.Background(), args)
 	go func() {
-		for range output {
+		for x := range output {
+			_ = x
 		}
 	}()
 	errC := make(chan error)

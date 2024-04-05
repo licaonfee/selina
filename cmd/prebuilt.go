@@ -18,11 +18,7 @@ import (
 	"github.com/vmihailenco/msgpack"
 
 	"github.com/licaonfee/selina"
-	"github.com/licaonfee/selina/workers/csv"
-	"github.com/licaonfee/selina/workers/ops"
-	"github.com/licaonfee/selina/workers/regex"
-	"github.com/licaonfee/selina/workers/sql"
-	"github.com/licaonfee/selina/workers/text"
+	"github.com/licaonfee/selina/workers"
 )
 
 var _ error = (*MakeError)(nil)
@@ -44,7 +40,7 @@ func newMakeError(f interface{}, err error) *MakeError {
 	return &MakeError{Facility: reflect.TypeOf(f).String(), err: err}
 }
 
-//GeneralOptions will not use jsonschema automatically because Type is determined in excution time
+// GeneralOptions will not use jsonschema automatically because Type is determined in excution time
 type GeneralOptions struct {
 	Name        string                 `yaml:"name"`
 	Type        string                 `yaml:"type"`
@@ -74,7 +70,7 @@ func NewReadFile() NodeFacility {
 	return &ReadFile{SplitMode: splitLine}
 }
 
-//ReadFile read data from a text file
+// ReadFile read data from a text file
 type ReadFile struct {
 	Filename  string `mapstructure:"filename" json:"filename" jsonschema:"minLength=1"`
 	SplitMode string `mapstructure:"split" json:"split,omitempty" jsonschema:"enum=line,enum=byte,enum=char"`
@@ -96,11 +92,11 @@ func (r *ReadFile) Make(name string) (*selina.Node, error) {
 	default:
 		return nil, newMakeError(r, errors.New("invalid split mode "+r.SplitMode))
 	}
-	readOpts := text.ReaderOptions{Reader: f, SplitFunc: split, AutoClose: true}
+	readOpts := workers.TextReaderOptions{Reader: f, SplitFunc: split, AutoClose: true}
 	if err := readOpts.Check(); err != nil {
 		return nil, newMakeError(r, err)
 	}
-	return selina.NewNode(name, text.NewReader(readOpts)), nil
+	return selina.NewNode(name, workers.NewReader(readOpts)), nil
 }
 
 var _ (NodeFacility) = (*WriteFile)(nil)
@@ -148,11 +144,11 @@ func (w *WriteFile) Make(name string) (*selina.Node, error) {
 		return nil, newMakeError(w, err)
 	}
 
-	opts := text.WriterOptions{Writer: f, AutoClose: true, BufferSize: w.BufferSize, Codec: codec}
+	opts := workers.TextWriterOptions{Writer: f, AutoClose: true, BufferSize: w.BufferSize, Codec: codec}
 	if err := opts.Check(); err != nil {
 		return nil, newMakeError(w, err)
 	}
-	return selina.NewNode(name, text.NewWriter(opts)), nil
+	return selina.NewNode(name, workers.NewTextWriter(opts)), nil
 }
 
 var _ (NodeFacility) = (*SQLQuery)(nil)
@@ -168,7 +164,7 @@ type SQLQuery struct {
 }
 
 func (s *SQLQuery) Make(name string) (*selina.Node, error) {
-	opts := sql.ReaderOptions{Driver: s.Driver,
+	opts := w.ReaderOptions{Driver: s.Driver,
 		ConnStr: s.DSN,
 		Query:   s.Query}
 	if err := opts.Check(); err != nil {
@@ -237,11 +233,11 @@ func (c *CSV) Make(name string) (*selina.Node, error) {
 	var w selina.Worker
 	switch c.Mode {
 	case "decode":
-		opts := csv.DecoderOptions{Header: c.Header, Comma: c.Comma, Comment: c.Comment}
-		w = csv.NewDecoder(opts)
+		opts := csv.CSVDecoderOptions{Header: c.Header, Comma: c.Comma, Comment: c.Comment}
+		w = csv.NewCSVDecoder(opts)
 	case "encode":
 		opts := csv.EncoderOptions{Header: c.Header, Comma: c.Comma, UseCRLF: c.UseCrlf}
-		w = csv.NewEncoder(opts)
+		w = csv.NewCSVEncoder(opts)
 	default:
 		return nil, newMakeError(c, errors.New("invalid mode value "+c.Mode))
 	}

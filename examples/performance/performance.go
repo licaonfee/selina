@@ -15,7 +15,7 @@ import (
 	"github.com/google/gops/agent"
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/csv"
-	"github.com/licaonfee/selina/workers/text"
+	"github.com/licaonfee/selina/workers/workers"
 	"github.com/vmihailenco/msgpack"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
@@ -52,10 +52,10 @@ func main() {
 	duration := flag.Duration("duration", defaultDuration, "Run for X time")
 	flag.Parse()
 	rd := newInfiniteReader(sample)
-	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd, ReadFormat: json.Unmarshal, WriteFormat: msgpack.Marshal}))
+	input := selina.NewNode("Read", workers.NewReader(workers.TextReaderOptions{Reader: rd, ReadFormat: json.Unmarshal, WriteFormat: msgpack.Marshal}))
 	//Just print name and pet
-	filter := selina.NewNode("CSV", csv.NewEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}, ReadFormat: msgpack.Unmarshal}))
-	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: os.Stdout, SkipNewLine: true}))
+	filter := selina.NewNode("CSV", csv.NewCSVEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}, ReadFormat: msgpack.Unmarshal}))
+	output := selina.NewNode("Write", workers.NewTextWriter(workers.TextWriterOptions{Writer: os.Stdout, SkipNewLine: true}))
 	pipe := selina.LinealPipeline(input, filter, output)
 
 	ctx, cancel := context.WithTimeout(context.Background(), *duration)

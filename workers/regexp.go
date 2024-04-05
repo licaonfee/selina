@@ -1,4 +1,4 @@
-package regex
+package workers
 
 import (
 	"context"

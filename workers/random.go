@@ -1,4 +1,4 @@
-package random
+package workers
 
 import (
 	"bytes"
@@ -11,15 +11,15 @@ import (
 
 var _ selina.Worker = (*Random)(nil)
 
-// Options to customize Ramdom generator
-type Options struct {
+// RandomOptions to customize Ramdom generator
+type RandomOptions struct {
 	// Len how many random bytes will contain []byte
 	Len int
 }
 
 // Random generate random []byte slices
 type Random struct {
-	opts Options
+	opts RandomOptions
 }
 
 // Process implements Worker interface
@@ -56,6 +56,6 @@ func (r *Random) Process(ctx context.Context, args selina.ProcessArgs) error {
 }
 
 // NewRandom create a new Random worker that generate random byte slices
-func NewRandom(opts Options) *Random {
+func NewRandom(opts RandomOptions) *Random {
 	return &Random{opts: opts}
 }

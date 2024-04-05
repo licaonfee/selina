@@ -13,15 +13,15 @@ import (
 	"time"
 
 	"github.com/licaonfee/selina"
+	"github.com/licaonfee/selina/workers"
 	"github.com/licaonfee/selina/workers/remote"
-	"github.com/licaonfee/selina/workers/text"
 	"golang.org/x/sync/errgroup"
 )
 
 const address = "localhost:65000"
 
 func producer(data string) selina.Pipeliner {
-	txt := text.NewReader(text.ReaderOptions{Reader: strings.NewReader(data)})
+	txt := workers.NewTextReader(workers.TextReaderOptions{Reader: strings.NewReader(data)})
 	client := remote.NewClient(remote.ClientOptions{Address: address})
 	return selina.LinealPipeline(
 		selina.NewNode("input", txt),
@@ -30,7 +30,7 @@ func producer(data string) selina.Pipeliner {
 
 func consumer(w io.Writer) selina.Pipeliner {
 	server := remote.NewServer(remote.ServerOptions{Network: "tcp", Address: address})
-	txt := text.NewWriter(text.WriterOptions{Writer: w})
+	txt := workers.NewTextWriter(workers.TextWriterOptions{Writer: w})
 	return selina.LinealPipeline(
 		selina.NewNode("grpc", server),
 		selina.NewNode("output", txt))

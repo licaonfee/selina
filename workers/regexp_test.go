@@ -1,4 +1,4 @@
-package regex_test
+package workers_test
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/licaonfee/selina/workers"
-	"github.com/licaonfee/selina/workers/regex"
 
 	"github.com/licaonfee/selina"
 
@@ -15,7 +14,7 @@ import (
 
 func TestFilter_Process(t *testing.T) {
 	type args struct {
-		opts regex.FilterOptions
+		opts workers.FilterOptions
 		in   []string
 		want []string
 	}
@@ -27,7 +26,7 @@ func TestFilter_Process(t *testing.T) {
 		{
 			name: "Simple FIlter",
 			args: args{
-				opts: regex.FilterOptions{Pattern: "^ba.+"},
+				opts: workers.FilterOptions{Pattern: "^ba.+"},
 				in:   []string{"foo", "bar", "baz"},
 				want: []string{"bar", "baz"},
 			},
@@ -36,7 +35,7 @@ func TestFilter_Process(t *testing.T) {
 		{
 			name: "Invalid Filter",
 			args: args{
-				opts: regex.FilterOptions{Pattern: "[----"},
+				opts: workers.FilterOptions{Pattern: "[----"},
 				in:   []string{"you", "shall", "not", "pass"},
 				want: []string{},
 			},
@@ -45,7 +44,7 @@ func TestFilter_Process(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := regex.NewFilter(tt.args.opts)
+			r := workers.NewFilter(tt.args.opts)
 			input := selina.SliceAsChannelOfBuffer(tt.args.in, true)
 			output := make(chan *bytes.Buffer)
 			got := []*bytes.Buffer{}
@@ -74,20 +73,20 @@ func TestFilter_Process(t *testing.T) {
 }
 
 func TestFilterProcessCancelation(t *testing.T) {
-	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
+	r := workers.NewFilter(workers.FilterOptions{Pattern: ".*"})
 	if err := workers.ATProcessCancel(r); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestFilterProcessCloseInput(t *testing.T) {
-	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
+	r := workers.NewFilter(workers.FilterOptions{Pattern: ".*"})
 	if err := workers.ATProcessCloseInput(r); err != nil {
 		t.Fatal(err)
 	}
 }
 func TestRegexFilterProcessCloseOutput(t *testing.T) {
-	r := regex.NewFilter(regex.FilterOptions{Pattern: ".*"})
+	r := workers.NewFilter(workers.FilterOptions{Pattern: ".*"})
 	if err := workers.ATProcessCloseOutput(r); err != nil {
 		t.Fatal(err)
 	}

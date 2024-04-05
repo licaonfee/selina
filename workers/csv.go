@@ -1,5 +1,4 @@
-// Package csv workers to read and write csv format
-package csv
+package workers
 
 import (
 	"bytes"
@@ -13,10 +12,10 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*Encoder)(nil)
+var _ selina.Worker = (*CSVEncoder)(nil)
 
-// EncoderOptions configure csv encoding
-type EncoderOptions struct {
+// CSVEncoderOptions configure csv encoding
+type CSVEncoderOptions struct {
 	// Header acts as a filter, if a field is not in header is skipped
 	Header []string
 	// Comma default ,
@@ -27,13 +26,13 @@ type EncoderOptions struct {
 	ReadFormat selina.Unmarshaler
 }
 
-// Encoder transform messages into csv text
-type Encoder struct {
-	opts EncoderOptions
+// CSVEncoder transform messages into csv text
+type CSVEncoder struct {
+	opts CSVEncoderOptions
 }
 
 // Process implements selina.Worker interface
-func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
+func (e *CSVEncoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	if args.Input == nil {
 		return selina.ErrNilUpstream
@@ -89,9 +88,9 @@ func (e *Encoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
-// NewEncoder returns a new Encoder with given options
-func NewEncoder(opts EncoderOptions) *Encoder {
-	return &Encoder{opts: opts}
+// NewCSVEncoder returns a new Encoder with given options
+func NewCSVEncoder(opts CSVEncoderOptions) *CSVEncoder {
+	return &CSVEncoder{opts: opts}
 }
 
 func getHeader(sample map[string]interface{}) []string {
@@ -134,10 +133,10 @@ func sendData(ctx context.Context, row []string, w *csv.Writer, buff *bytes.Buff
 	return nil
 }
 
-var _ selina.Worker = (*Decoder)(nil)
+var _ selina.Worker = (*CSVDecoder)(nil)
 
-// DecoderOptions configure csv read format
-type DecoderOptions struct {
+// CSVDecoderOptions configure csv read format
+type CSVDecoderOptions struct {
 	Header  []string
 	Comma   rune
 	Comment rune
@@ -145,13 +144,13 @@ type DecoderOptions struct {
 	Codec   selina.Marshaler
 }
 
-// Decoder parse csv lines into key value pairs
-type Decoder struct {
-	opts DecoderOptions
+// CSVDecoder parse csv lines into key value pairs
+type CSVDecoder struct {
+	opts CSVDecoderOptions
 }
 
 // Process implements selina.Worker interface
-func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
+func (d *CSVDecoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	defer close(args.Output)
 	if args.Input == nil {
 		return selina.ErrNilUpstream
@@ -207,7 +206,7 @@ func (d *Decoder) Process(ctx context.Context, args selina.ProcessArgs) error {
 	}
 }
 
-// NewDecoder return a new csv decoder with given options
-func NewDecoder(opts DecoderOptions) *Decoder {
-	return &Decoder{opts: opts}
+// NewCSVDecoder return a new csv decoder with given options
+func NewCSVDecoder(opts CSVDecoderOptions) *CSVDecoder {
+	return &CSVDecoder{opts: opts}
 }

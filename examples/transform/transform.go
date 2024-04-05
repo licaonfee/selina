@@ -8,7 +8,7 @@ import (
 
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers/csv"
-	"github.com/licaonfee/selina/workers/text"
+	"github.com/licaonfee/selina/workers/workers"
 )
 
 const sample = `{"name":"Jimmy", "age": 22, "pet":"cat"}
@@ -17,10 +17,10 @@ const sample = `{"name":"Jimmy", "age": 22, "pet":"cat"}
 
 func main() {
 	rd := strings.NewReader(sample)
-	input := selina.NewNode("Read", text.NewReader(text.ReaderOptions{Reader: rd}))
+	input := selina.NewNode("Read", workers.NewReader(workers.TextReaderOptions{Reader: rd}))
 	//Just print name and pet
-	filter := selina.NewNode("CSV", csv.NewEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}}))
-	output := selina.NewNode("Write", text.NewWriter(text.WriterOptions{Writer: os.Stdout, SkipNewLine: true}))
+	filter := selina.NewNode("CSV", csv.NewCSVEncoder(csv.EncoderOptions{Comma: ';', UseCRLF: false, Header: []string{"name", "pet"}}))
+	output := selina.NewNode("Write", workers.NewTextWriter(workers.TextWriterOptions{Writer: os.Stdout, SkipNewLine: true}))
 	pipe := selina.LinealPipeline(input, filter, output)
 	if err := pipe.Run(context.Background()); err != nil {
 		fmt.Printf("ERR: %v\n", err)

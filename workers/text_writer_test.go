@@ -1,4 +1,4 @@
-package text_test
+package workers_test
 
 import (
 	"bufio"
@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/licaonfee/selina/workers"
-	"github.com/licaonfee/selina/workers/text"
 
 	"github.com/licaonfee/selina"
 )
@@ -20,7 +19,7 @@ func TestWriterProcess(t *testing.T) {
 		"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua",
 	}
 	w := &bytes.Buffer{}
-	tw := text.NewWriter(text.WriterOptions{Writer: w})
+	tw := workers.NewTextWriter(workers.TextWriterOptions{Writer: w})
 	in := selina.SliceAsChannelOfBuffer(fileContents, true)
 	out := make(chan *bytes.Buffer)
 	args := selina.ProcessArgs{Input: in, Output: out}
@@ -38,20 +37,20 @@ func TestWriterProcess(t *testing.T) {
 }
 
 func TestWriterProcessNilWriter(t *testing.T) {
-	opts := text.WriterOptions{Writer: nil}
-	tr := text.NewWriter(opts)
+	opts := workers.TextWriterOptions{Writer: nil}
+	tr := workers.NewTextWriter(opts)
 	in := make(chan *bytes.Buffer)
 	out := make(chan *bytes.Buffer) // unbuffered so, process wait forever
 	args := selina.ProcessArgs{Input: in, Output: out}
 	err := tr.Process(context.Background(), args)
-	if err != text.ErrNilWriter {
+	if err != workers.ErrNilWriter {
 		t.Fatalf("Process() err = %T(%v)", err, err)
 	}
 }
 
 func TestWriterProcessCloseInput(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewWriter(text.WriterOptions{Writer: w})
+	tw := workers.NewTextWriter(workers.TextWriterOptions{Writer: w})
 	if err := workers.ATProcessCloseInput(tw); err != nil {
 		t.Fatal(err)
 	}
@@ -59,14 +58,14 @@ func TestWriterProcessCloseInput(t *testing.T) {
 
 func TestWriterProcessCloseOutput(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewWriter(text.WriterOptions{Writer: w})
+	tw := workers.NewTextWriter(workers.TextWriterOptions{Writer: w})
 	if err := workers.ATProcessCloseOutput(tw); err != nil {
 		t.Fatal(err)
 	}
 }
 func TestWriterProcessCancel(t *testing.T) {
 	w := &bytes.Buffer{}
-	tw := text.NewWriter(text.WriterOptions{Writer: w})
+	tw := workers.NewTextWriter(workers.TextWriterOptions{Writer: w})
 	if err := workers.ATProcessCancel(tw); err != nil {
 		t.Fatal(err)
 	}

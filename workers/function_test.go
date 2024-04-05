@@ -1,4 +1,4 @@
-package custom_test
+package workers_test
 
 import (
 	"bytes"
@@ -9,7 +9,6 @@ import (
 
 	"github.com/licaonfee/selina"
 	"github.com/licaonfee/selina/workers"
-	"github.com/licaonfee/selina/workers/custom"
 )
 
 func pass(in []byte) ([]byte, error) {
@@ -17,21 +16,21 @@ func pass(in []byte) ([]byte, error) {
 }
 
 func TestFunctionProcessCloseInput(t *testing.T) {
-	f := custom.NewFunction(custom.FunctionOptions{Func: pass})
+	f := workers.NewFunction(workers.FunctionOptions{Func: pass})
 	if err := workers.ATProcessCloseInput(f); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestFunctionProcessCloseOutput(t *testing.T) {
-	f := custom.NewFunction(custom.FunctionOptions{Func: pass})
+	f := workers.NewFunction(workers.FunctionOptions{Func: pass})
 	if err := workers.ATProcessCloseOutput(f); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestFunctionProcessCancel(t *testing.T) {
-	f := custom.NewFunction(custom.FunctionOptions{Func: pass})
+	f := workers.NewFunction(workers.FunctionOptions{Func: pass})
 	if err := workers.ATProcessCancel(f); err != nil {
 		t.Fatal(err)
 	}
@@ -40,14 +39,14 @@ func TestFunctionProcessCancel(t *testing.T) {
 func TestFunctionProcess(t *testing.T) {
 	tests := []struct {
 		name    string
-		opts    custom.FunctionOptions
+		opts    workers.FunctionOptions
 		msgs    []string
 		want    []string
 		wantErr bool
 	}{
 		{
 			name: "Passthrough",
-			opts: custom.FunctionOptions{Func: func(in []byte) ([]byte, error) {
+			opts: workers.FunctionOptions{Func: func(in []byte) ([]byte, error) {
 				return in, nil
 			}},
 			msgs:    []string{"a", "d", "f"},
@@ -56,14 +55,14 @@ func TestFunctionProcess(t *testing.T) {
 		},
 		{
 			name:    "Nil function",
-			opts:    custom.FunctionOptions{},
+			opts:    workers.FunctionOptions{},
 			msgs:    []string{},
 			want:    []string{},
 			wantErr: true,
 		},
 		{
 			name: "Function error",
-			opts: custom.FunctionOptions{Func: func(in []byte) ([]byte, error) {
+			opts: workers.FunctionOptions{Func: func(in []byte) ([]byte, error) {
 				return nil, errors.New("function error")
 			}},
 			msgs:    []string{"une", "dois"},
@@ -72,7 +71,7 @@ func TestFunctionProcess(t *testing.T) {
 		},
 		{
 			name: "Filter function",
-			opts: custom.FunctionOptions{Func: func(in []byte) ([]byte, error) {
+			opts: workers.FunctionOptions{Func: func(in []byte) ([]byte, error) {
 				if len(in) > 5 {
 					return nil, nil
 				}
@@ -85,7 +84,7 @@ func TestFunctionProcess(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := custom.NewFunction(tt.opts)
+			f := workers.NewFunction(tt.opts)
 			input := selina.SliceAsChannelOfBuffer(tt.msgs, true)
 			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}

@@ -1,4 +1,4 @@
-package ops_test
+package workers_test
 
 import (
 	"bytes"
@@ -11,24 +11,23 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/licaonfee/selina/workers"
-	"github.com/licaonfee/selina/workers/ops"
 )
 
 func TestCronProcessCancelation(t *testing.T) {
-	c := ops.NewCron(ops.CronOptions{Spec: "@every 10s"})
+	c := workers.NewCron(workers.CronOptions{Spec: "@every 10s"})
 	if err := workers.ATProcessCancel(c); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestCronProcessCloseInput(t *testing.T) {
-	c := ops.NewCron(ops.CronOptions{Spec: "@every 1s"})
+	c := workers.NewCron(workers.CronOptions{Spec: "@every 1s"})
 	if err := workers.ATProcessCloseInput(c); err != nil {
 		t.Fatal(err)
 	}
 }
 func TestCronProcessCloseOutput(t *testing.T) {
-	c := ops.NewCron(ops.CronOptions{Spec: "@every 1s"})
+	c := workers.NewCron(workers.CronOptions{Spec: "@every 1s"})
 	if err := workers.ATProcessCloseOutput(c); err != nil {
 		t.Fatal(err)
 	}
@@ -37,43 +36,43 @@ func TestCronProcessCloseOutput(t *testing.T) {
 func TestCronProcess(t *testing.T) {
 	tests := []struct {
 		name    string
-		opts    ops.CronOptions
+		opts    workers.CronOptions
 		want    []string
 		runFor  time.Duration
 		wantErr error
 	}{
 		{
 			name:    "Invalid spec",
-			opts:    ops.CronOptions{Spec: ""},
+			opts:    workers.CronOptions{Spec: ""},
 			want:    []string{},
-			wantErr: ops.ErrBadCronSpec,
+			wantErr: workers.ErrBadCronSpec,
 		},
 		{
 			name:    "Tick message",
-			opts:    ops.CronOptions{Spec: "@every 1s", Message: []byte("foo")},
+			opts:    workers.CronOptions{Spec: "@every 1s", Message: []byte("foo")},
 			want:    []string{"foo"},
 			runFor:  time.Second,
 			wantErr: nil,
 		},
 		{
 			name:    "Tick nil",
-			opts:    ops.CronOptions{Spec: "@every 1s"},
+			opts:    workers.CronOptions{Spec: "@every 1s"},
 			want:    []string{""},
 			runFor:  time.Second,
 			wantErr: nil,
 		},
 		{
 			name:    "Bad spec",
-			opts:    ops.CronOptions{Spec: "@eberi 1z"},
+			opts:    workers.CronOptions{Spec: "@eberi 1z"},
 			want:    []string{},
 			runFor:  time.Second,
-			wantErr: ops.ErrBadCronSpec,
+			wantErr: workers.ErrBadCronSpec,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := ops.NewCron(tt.opts)
+			c := workers.NewCron(tt.opts)
 			input := make(chan *bytes.Buffer)
 			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}

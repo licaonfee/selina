@@ -1,4 +1,4 @@
-package random_test
+package workers_test
 
 import (
 	"bytes"
@@ -8,23 +8,21 @@ import (
 	"github.com/licaonfee/selina"
 
 	"github.com/licaonfee/selina/workers"
-
-	"github.com/licaonfee/selina/workers/random"
 )
 
 func TestRandomProcesslen(t *testing.T) {
 	tests := []struct {
 		name string
-		opts random.Options
+		opts workers.RandomOptions
 	}{
 		{
 			name: "Short slice",
-			opts: random.Options{Len: 32},
+			opts: workers.RandomOptions{Len: 32},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := random.NewRandom(tt.opts)
+			r := workers.NewRandom(tt.opts)
 			input := make(chan *bytes.Buffer, 1)
 			input <- nil
 			output := make(chan *bytes.Buffer)
@@ -64,7 +62,7 @@ func TestRandomRunUntilCancel(t *testing.T) {
 		}
 		cancel()
 	}()
-	w := random.NewRandom(random.Options{Len: 32})
+	w := workers.NewRandom(workers.RandomOptions{Len: 32})
 	err := w.Process(ctx, args)
 	if err != context.Canceled {
 		t.Error("Process() not run forever")
@@ -72,21 +70,21 @@ func TestRandomRunUntilCancel(t *testing.T) {
 }
 
 func TestRandomProcessCancel(t *testing.T) {
-	p := random.NewRandom(random.Options{Len: 8})
+	p := workers.NewRandom(workers.RandomOptions{Len: 8})
 	if err := workers.ATProcessCancel(p); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestRandomProcessCloseInput(t *testing.T) {
-	p := random.NewRandom(random.Options{Len: 8})
+	p := workers.NewRandom(workers.RandomOptions{Len: 8})
 	if err := workers.ATProcessCloseInput(p); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestRandomProcessCloseOutput(t *testing.T) {
-	p := random.NewRandom(random.Options{Len: 8})
+	p := workers.NewRandom(workers.RandomOptions{Len: 8})
 	if err := workers.ATProcessCloseOutput(p); err != nil {
 		t.Fatal(err)
 	}

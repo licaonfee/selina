@@ -1,4 +1,4 @@
-package text
+package workers
 
 import (
 	"bufio"
@@ -9,19 +9,19 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*Reader)(nil)
+var _ selina.Worker = (*TextReader)(nil)
 
-// ErrNilReader is returned when a nil io.Reader interface is provided
+// ErrNilTextReader is returned when a nil io.TextReader interface is provided
 var (
-	ErrNilReader = errors.New("nil io.Reader provided to TextReader")
+	ErrNilTextReader = errors.New("nil io.TextReader provided to TextReader")
 )
 
-// ReaderOptions customize Reader
-type ReaderOptions struct {
+// TextReaderOptions customize TextReader
+type TextReaderOptions struct {
 	// Reader from which data is readed
 	Reader io.Reader
-	// AutoClose if its true and Reader implements io.Closer
-	// io.Reader.Close() method is called on Process finish
+	// AutoClose if its true and TextReader implements io.Closer
+	// io.TextReader.Close() method is called on Process finish
 	AutoClose bool
 	// Default is ScanLines
 	SplitFunc bufio.SplitFunc
@@ -33,19 +33,19 @@ type ReaderOptions struct {
 }
 
 // Check if a combination of options is valid
-func (o ReaderOptions) Check() error {
+func (o TextReaderOptions) Check() error {
 	if o.Reader == nil {
-		return ErrNilReader
+		return ErrNilTextReader
 	}
 	return nil
 }
 
-// Reader a worker that read data from an io.Reader
-type Reader struct {
-	opts ReaderOptions
+// TextReader a worker that read data from an io.TextReader
+type TextReader struct {
+	opts TextReaderOptions
 }
 
-func (t *Reader) cleanup() error {
+func (t *TextReader) cleanup() error {
 	if t.opts.Reader == nil {
 		return nil
 	}
@@ -56,7 +56,7 @@ func (t *Reader) cleanup() error {
 }
 
 // Process implements Worker interface
-func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
+func (t *TextReader) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
 		close(args.Output)
 		cerr := t.cleanup()
@@ -105,8 +105,8 @@ func (t *Reader) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	return nil
 }
 
-// NewReader create a new Reader with given options
-func NewReader(opts ReaderOptions) *Reader {
-	t := Reader{opts: opts}
+// NewTextReader create a new TextReader with given options
+func NewTextReader(opts TextReaderOptions) *TextReader {
+	t := TextReader{opts: opts}
 	return &t
 }

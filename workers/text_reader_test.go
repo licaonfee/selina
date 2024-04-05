@@ -1,4 +1,4 @@
-package text_test
+package workers_test
 
 import (
 	"bufio"
@@ -14,7 +14,6 @@ import (
 	"github.com/licaonfee/selina"
 
 	"github.com/licaonfee/selina/workers"
-	"github.com/licaonfee/selina/workers/text"
 )
 
 func TestReaderProcess(t *testing.T) {
@@ -25,7 +24,7 @@ func TestReaderProcess(t *testing.T) {
 	tests := []struct {
 		name    string
 		data    []string
-		opts    text.ReaderOptions
+		opts    workers.TextReaderOptions
 		split   bufio.SplitFunc
 		want    []string
 		wantErr error
@@ -36,7 +35,7 @@ func TestReaderProcess(t *testing.T) {
 				"Lorem ipsum dolor sit amet\n",
 				"consectetur adipiscing elit\n",
 				"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"},
-			opts: text.ReaderOptions{},
+			opts: workers.TextReaderOptions{},
 			want: []string{"Lorem ipsum dolor sit amet",
 				"consectetur adipiscing elit",
 				"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"},
@@ -46,7 +45,7 @@ func TestReaderProcess(t *testing.T) {
 			name: "Success Split Words",
 			data: []string{"Im a multiline text\n",
 				"newlines must be ignored\n\n\n"},
-			opts: text.ReaderOptions{
+			opts: workers.TextReaderOptions{
 				SplitFunc: bufio.ScanWords,
 			},
 			want: []string{"Im", "a", "multiline", "text",
@@ -56,14 +55,14 @@ func TestReaderProcess(t *testing.T) {
 		{
 			name:    "nil io.Reader",
 			data:    nil,
-			opts:    text.ReaderOptions{},
+			opts:    workers.TextReaderOptions{},
 			want:    []string{},
-			wantErr: text.ErrNilReader,
+			wantErr: workers.ErrNilTextReader,
 		},
 		{
 			name: "read ndjson",
 			data: []string{`{"name":"foo","age":25}` + "\n", `{"name":"foo","age":26}` + "\n", `{"name":"foo","age":27}` + "\n"},
-			opts: text.ReaderOptions{
+			opts: workers.TextReaderOptions{
 				SplitFunc:   bufio.ScanLines,
 				ReadFormat:  json.Unmarshal,
 				WriteFormat: json.Marshal,
@@ -74,7 +73,7 @@ func TestReaderProcess(t *testing.T) {
 		{
 			name: "bad marshaler",
 			data: []string{`{"name":"foo","age":25}` + "\n", `{"name":"foo","age":26}` + "\n", `{"name":"foo","age":27}` + "\n"},
-			opts: text.ReaderOptions{
+			opts: workers.TextReaderOptions{
 				SplitFunc:   bufio.ScanLines,
 				ReadFormat:  json.Unmarshal,
 				WriteFormat: badMarshaler,
@@ -85,7 +84,7 @@ func TestReaderProcess(t *testing.T) {
 		{
 			name: "bad unmarshaler",
 			data: []string{`{"name":"foo","age":25}` + "\n", `{"name":"foo","age":26}` + "\n", `{"name":"foo","age":27}` + "\n"},
-			opts: text.ReaderOptions{
+			opts: workers.TextReaderOptions{
 				SplitFunc:   bufio.ScanLines,
 				ReadFormat:  badUnmarshaler,
 				WriteFormat: json.Marshal,
@@ -102,7 +101,7 @@ func TestReaderProcess(t *testing.T) {
 				r = strings.NewReader(strings.Join(tt.data, ""))
 			}
 			tt.opts.Reader = r
-			w := text.NewReader(tt.opts)
+			w := workers.NewTextReader(tt.opts)
 			input := make(chan *bytes.Buffer)
 			output := make(chan *bytes.Buffer, len(tt.want))
 			args := selina.ProcessArgs{Input: input, Output: output}
@@ -124,7 +123,7 @@ func TestReaderProcess(t *testing.T) {
 func TestReaderProcessCancel(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := text.NewReader(text.ReaderOptions{Reader: rd})
+	tr := workers.NewTextReader(workers.TextReaderOptions{Reader: rd})
 	if err := workers.ATProcessCancel(tr); err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +132,7 @@ func TestReaderProcessCancel(t *testing.T) {
 func TestReaderProcessCloseInput(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := text.NewReader(text.ReaderOptions{Reader: rd})
+	tr := workers.NewTextReader(workers.TextReaderOptions{Reader: rd})
 	if err := workers.ATProcessCloseInput(tr); err != nil {
 		t.Fatal(err)
 	}
@@ -142,20 +141,20 @@ func TestReaderProcessCloseInput(t *testing.T) {
 func TestReaderProcessCloseOutput(t *testing.T) {
 	fileContents := []string{"fooo", "bar"}
 	rd := strings.NewReader(strings.Join(fileContents, "\n"))
-	tr := text.NewReader(text.ReaderOptions{Reader: rd})
+	tr := workers.NewTextReader(workers.TextReaderOptions{Reader: rd})
 	if err := workers.ATProcessCloseOutput(tr); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestReaderProcessNilReader(t *testing.T) {
-	opts := text.ReaderOptions{Reader: nil}
-	tr := text.NewReader(opts)
+	opts := workers.TextReaderOptions{Reader: nil}
+	tr := workers.NewTextReader(opts)
 	in := make(chan *bytes.Buffer)
 	out := make(chan *bytes.Buffer) // unbuffered so, process wait forever
 	args := selina.ProcessArgs{Input: in, Output: out}
 	err := tr.Process(context.Background(), args)
-	if err != text.ErrNilReader {
+	if err != workers.ErrNilTextReader {
 		t.Fatalf("Process() err = %T(%v)", err, err)
 	}
 }

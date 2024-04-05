@@ -1,4 +1,4 @@
-package text
+package workers
 
 import (
 	"bufio"
@@ -9,10 +9,10 @@ import (
 	"github.com/licaonfee/selina"
 )
 
-var _ selina.Worker = (*Writer)(nil)
+var _ selina.Worker = (*TextWriter)(nil)
 
-// WriterOptions customize Writer
-type WriterOptions struct {
+// TextWriterOptions customize Writer
+type TextWriterOptions struct {
 	// Writer io.Writer where data will be written
 	Writer io.Writer
 	// AutoClose when true and Writer implements io.Closer
@@ -24,19 +24,19 @@ type WriterOptions struct {
 }
 
 // Check if a combination of options is valid
-func (o WriterOptions) Check() error {
+func (o TextWriterOptions) Check() error {
 	if o.Writer == nil {
 		return ErrNilWriter
 	}
 	return nil
 }
 
-// Writer a Worker that write data to a given io.Writer in text format
-type Writer struct {
-	opts WriterOptions
+// TextWriter a Worker that write data to a given io.TextWriter in text format
+type TextWriter struct {
+	opts TextWriterOptions
 }
 
-func (t *Writer) cleanup() error {
+func (t *TextWriter) cleanup() error {
 	if t.opts.Writer == nil {
 		return nil
 	}
@@ -50,7 +50,7 @@ func (t *Writer) cleanup() error {
 var ErrNilWriter = errors.New("nil io.Writer provided to TextWriter")
 
 // Process implements Worker interface
-func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
+func (t *TextWriter) Process(ctx context.Context, args selina.ProcessArgs) (err error) {
 	defer func() {
 		close(args.Output)
 		cerr := t.cleanup()
@@ -102,8 +102,8 @@ func (t *Writer) Process(ctx context.Context, args selina.ProcessArgs) (err erro
 	}
 }
 
-// NewWriter create a new Writer with given options
-func NewWriter(opts WriterOptions) *Writer {
-	w := &Writer{opts: opts}
+// NewTextWriter create a new Writer with given options
+func NewTextWriter(opts TextWriterOptions) *TextWriter {
+	w := &TextWriter{opts: opts}
 	return w
 }
