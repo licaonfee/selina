@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
 	github.com/alecthomas/jsonschema v0.0.0-20220216202328-9eeeec9d044b
-	github.com/go-sql-driver/mysql v1.7.1
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang/protobuf v1.5.3
 	github.com/google/gops v0.3.28
 	github.com/lib/pq v1.10.9
@@ -26,6 +26,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
