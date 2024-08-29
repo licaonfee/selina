@@ -15,7 +15,7 @@ require (
 	github.com/licaonfee/tserie v0.3.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/proullon/ramsql v0.0.1
+	github.com/proullon/ramsql v0.1.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.11.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
@@ -30,11 +30,11 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
-	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
+	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
