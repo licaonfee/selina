@@ -101,6 +101,7 @@ func main() {
 	filename := flag.String("file", "", "pipeline definition file use - to stdin ")
 	timeout := flag.Duration("timeout", time.Duration(0), "maximum time to run, default limitless")
 	printSchema := flag.Bool("schema", false, "print jsonschema for yaml LSP")
+	graph := flag.Bool("graph", false, "print graphviz insteadof executing")
 	log.SetFlags(log.Llongfile | log.LstdFlags)
 	flag.Parse()
 	var availableNodes = map[string]NewFacility{
@@ -141,6 +142,10 @@ func main() {
 	p, err := createPipeline(def)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if *graph {
+		selina.Graph(p, os.Stdout)
+		return
 	}
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
