@@ -1,8 +1,6 @@
 module github.com/licaonfee/selina
 
-go 1.21
-
-toolchain go1.22.5
+go 1.23.0
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
@@ -20,8 +18,8 @@ require (
 	github.com/spf13/afero v1.11.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	golang.org/x/net v0.34.0
-	golang.org/x/sync v0.10.0
-	golang.org/x/text v0.21.0
+	golang.org/x/sync v0.14.0
+	golang.org/x/text v0.25.0
 	google.golang.org/grpc v1.66.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
