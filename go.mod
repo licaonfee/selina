@@ -28,7 +28,7 @@ require (
 )
 
 require (
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.1.1 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
