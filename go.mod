@@ -1,8 +1,6 @@
 module github.com/licaonfee/selina
 
-go 1.21
-
-toolchain go1.22.5
+go 1.24.0
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
@@ -19,11 +17,11 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/afero v1.11.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
-	golang.org/x/net v0.34.0
-	golang.org/x/sync v0.10.0
-	golang.org/x/text v0.21.0
-	google.golang.org/grpc v1.66.0
-	google.golang.org/protobuf v1.34.2
+	golang.org/x/net v0.48.0
+	golang.org/x/sync v0.19.0
+	golang.org/x/text v0.32.0
+	google.golang.org/grpc v1.79.3
+	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -35,8 +33,8 @@ require (
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240827150818-7e3bb234dfed // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
